@@ -17,7 +17,7 @@ if (fs.existsSync(userLimitsFile)) {
 }
 
 function getUserRequests(userId) {
-    return (userRequests[userId] || []).map(r => r.request);
+    return (userRequests[userId] || []);
 }
 
 function saveUserRequest(userId, request) {

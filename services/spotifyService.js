@@ -1,5 +1,6 @@
 const axios = require('axios');
 const config = require('../config/config');
+const {getRandomNumberInclusive} = require("../src/utils");
 
 let accessToken = null;
 
@@ -42,7 +43,7 @@ async function findSongSpotify(keywordsData) {
             params: {
                 q: keywordsData,
                 type: 'track',
-                limit: 1,
+                limit: getRandomNumberInclusive(30),
                 // market: 'AU',
             },
             responseType: 'json', // Явно указываем тип ответа
@@ -50,7 +51,7 @@ async function findSongSpotify(keywordsData) {
 
         // console.log('Spotify Raw Response (before parse):', JSON.stringify(response.data, null, 2));
         if (response.data.tracks && response.data.tracks.items.length > 0) {
-            const track = response.data.tracks.items[0];
+            const track = response.data.tracks.items[getRandomNumberInclusive(response.data.tracks.items.length)];
             console.log(track)
 
             // Явное декодирование

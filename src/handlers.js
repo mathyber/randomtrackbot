@@ -53,7 +53,12 @@ function setupHandlers(bot, botStartTime) {
         const chatId = searchingMessage.chat.id;
         const messageId = searchingMessage.message_id;
 
-        const keywordsData = await getRandomWords(getUserRequests(userId));
+        const today = new Date().toISOString().split('T')[0]; // Получаем YYYY-MM-DD
+
+        const filtered = getUserRequests(userId)?.filter(item => item.timestamp.startsWith(today)).map(r => r.request);
+        console.log(filtered, ctx.from);
+
+        const keywordsData = await getRandomWords(filtered);
         saveUserRequest(userId, keywordsData);
         const spotifyData = await findSongSpotify(keywordsData);
         if (!spotifyData) {

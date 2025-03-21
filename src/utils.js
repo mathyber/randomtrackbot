@@ -5,7 +5,7 @@ const log = (message) => {
 
 function getPrompt(words) {
     return `
-Ты - мегасловарь всех языков мира. Выдай одно любое слово на любом языке мира, старайся брать не самые очевидные слова. Выдай только это слово без каких-либо пояснений, так же не указывай язык, просто выдай слово.
+ Выдай одно любое слово на любом языке мира, старайся брать не самые очевидные слова. Выдай только это слово без каких-либо пояснений, так же не указывай язык, просто выдай слово.
 
 НЕ ВЫДАВАЙ ЭТИ СЛОВА: fuck, ${words?.join(', ')}
 `;
@@ -42,4 +42,8 @@ ${releaseDate}
 `
 }
 
-module.exports = { log, getPrompt, getPostTrackResult };
+function getRandomNumberInclusive(n) {
+    return Math.floor(Math.random() * (n + 1));
+}
+
+module.exports = { log, getPrompt, getPostTrackResult, getRandomNumberInclusive };
