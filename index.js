@@ -14,7 +14,7 @@ app.use(express.json());
 
 app.get('/callback', async (req, res) => {
     const code = req.query.code;
-    const state = Number(req.query.state); // Приводим к числу
+    const state = Number(req.query.state);
 
     console.log(`Callback triggered with code: ${code}, state: ${state}`);
 
@@ -39,55 +39,18 @@ app.get('/callback', async (req, res) => {
 
         await axios.post(`https://api.telegram.org/bot${config.TELEGRAM_TOKEN}/sendMessage`, {
             chat_id: state,
-            text: 'Авторизация прошла! Ща проверим устройства...',
+            text: 'Авторизация прошла! Теперь можешь использовать /play, /playfrom, /pause или /like.',
             parse_mode: 'HTML',
-        });
-
-        global.bot.telegram.sendMessage(state, 'Ищем...', { parse_mode: 'HTML' }).then(async (msg) => {
-            try {
-                console.log('userLastTracks contents before get:', global.userLastTracks);
-                const lastTrack = global.userLastTracks.get(state);
-                console.log(`Last track in callback for userId ${state}: ${lastTrack?.title} (${lastTrack?.link})`);
-                if (!lastTrack) {
-                    global.bot.telegram.editMessageText(state, msg.message_id, null, 'Сначала найди трек через /track, /fresh, /ultra_fresh или /hipster.', { parse_mode: 'HTML' });
-                    return;
-                }
-
-                const devicesResponse = await axios.get('https://api.spotify.com/v1/me/player/devices', {
-                    headers: { Authorization: `Bearer ${access_token}` },
-                });
-                const devices = devicesResponse.data.devices;
-                console.log(`Devices for userId ${state}:`, devices);
-
-                if (!devices.length) {
-                    global.bot.telegram.editMessageText(state, msg.message_id, null, 'Не нашёл активных устройств. Открой Spotify где-нибудь и попробуй снова /remote.', { parse_mode: 'HTML' });
-                    return;
-                }
-
-                const sessionId = `${state}_${Date.now()}`;
-                global.remoteSessions.set(sessionId, { trackId: lastTrack.link.split('/track/')[1], devices });
-                console.log(`Session ${sessionId} created with trackId: ${lastTrack.link.split('/track/')[1]}`);
-
-                const inlineKeyboard = devices.map((device, index) => [{
-                    text: `${device.name} (${device.type}) ${device.is_active ? '[активно]' : ''}`,
-                    callback_data: `play_${sessionId}_${index}`,
-                }]);
-                global.bot.telegram.editMessageText(state, msg.message_id, null, `Выбери, где запустить "${lastTrack.title}" на 15 сек:`, {
-                    parse_mode: 'HTML',
-                    reply_markup: { inline_keyboard: inlineKeyboard },
-                });
-            } catch (error) {
-                console.error('Callback Inner Error:', error.response?.data || error.message);
-                global.bot.telegram.editMessageText(state, msg.message_id, null, `Ошибка: ${error.response?.data?.error?.message || 'Что-то пошло не так.'}`, { parse_mode: 'HTML' });
-            }
-        }).catch(err => {
-            console.error('Telegram Send Error:', err);
-            res.send('Ошибка отправки сообщения в Telegram.');
         });
 
         res.send('Авторизация прошла! Вернись в Telegram.');
     } catch (error) {
         console.error('OAuth Error:', error.response?.data || error.message);
+        await axios.post(`https://api.telegram.org/bot${config.TELEGRAM_TOKEN}/sendMessage`, {
+            chat_id: state,
+            text: `Ошибка авторизации: ${error.response?.data?.error?.message || 'Что-то пошло не так.'}`,
+            parse_mode: 'HTML',
+        });
         res.send('Ошибка авторизации.');
     }
 });
