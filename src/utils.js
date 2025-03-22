@@ -26,7 +26,7 @@ ${link ? `<a href="${link}">Spotify Link</a>\n` : ''}${youtubeUrl ? `<a href="${
     `.trim();
 };
 
-function generateRandomSpotifyQuery(year, tag) {
+function generateRandomSpotifyQuery(year, tag, genre) {
     let alphabet, q = '';
     // Случайный offset
     const offset = Math.floor(Math.random() * 1001); // 0–1000   // Латиница (расширенная)
@@ -116,16 +116,20 @@ function generateRandomSpotifyQuery(year, tag) {
         q = `${q} year:${year}`
     }
 
+    if (genre) {
+        q = `${q} genre:${genre}`
+    }
+
     return { q, offset };
 }
 
-async function getRandomTrack(ctx, year, tag) {
+async function getRandomTrack(ctx, year, tag, genre) {
     let spotifyData = null;
     let attempts = 0;
     const maxAttempts = 5;
 
     while (!spotifyData?.img && attempts < maxAttempts) {
-        const data = generateRandomSpotifyQuery(year, tag);
+        const data = generateRandomSpotifyQuery(year, tag, genre);
         spotifyData = tag ? await findSongFromAlbumSpotify(data) : await findSongSpotify(data);
         saveUserRequest(ctx.from.id, `${ctx.from.username} - ${data.q} ${data.offset}: ${!!spotifyData}`);
         attempts++;
@@ -137,4 +141,4 @@ async function getRandomTrack(ctx, year, tag) {
     return spotifyData;
 }
 
-module.exports = { getPostTrackResult, getRandomTrack };
+module.exports = { getPostTrackResult, generateRandomSpotifyQuery, getRandomTrack };

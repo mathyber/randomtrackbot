@@ -11,22 +11,19 @@ const config = require('../config/config');
 const { getPostTrackResult, getRandomTrack } = require("./utils");
 const path = require('path');
 const axios = require('axios');
-
 const pngLogo = path.join(__dirname, '../files/1.png');
 const currentYear = new Date().getFullYear();
 const DESCRIPTION = `Установленное ограничение на количество запросов в день: ${config.GLOBAL_LIMIT}`;
 const COMMANDS = [
     { cmd: '/track', description: 'рандомный трек' },
-    { cmd: '/fresh', description: `рандомный трек, выпущенный в ${currentYear} году` },
-    { cmd: '/ultra_fresh', description: `рандомный трек, выпущенный за последние две недели` },
-    { cmd: '/hipster', description: `рандомный трек с низкой популярностью` },
+    { cmd: '/fresh', description: `рандомный трек ${currentYear} года` },
+    { cmd: '/ultra_fresh', description: 'рандомный трек за последние две недели' },
+    { cmd: '/hipster', description: 'рандомный трек с низкой популярностью' },
+    { cmd: '/genre', description: 'рандомный трек в указанном жанре, например /genre rock' },
     { cmd: '/play', description: 'запустить последний трек на активном устройстве (нужен премиум Spotify)' },
-    { cmd: '/help', description: `все команды` },
-    {
-        cmd: '/playfrom',
-        description: 'запустить последний трек с указанной минуты на активном устройстве, например /playfrom 1:00 (нужен премиум Spotify)'
-    },
-    { cmd: '/pause', description: 'поставить текущий трек на паузу на активном устройстве (нужен премиум Spotify)' },
+    { cmd: '/help', description: 'все команды' },
+    { cmd: '/playfrom', description: 'запустить последний трек с указанной минуты, например /playfrom 1:00 (нужен премиум Spotify)' },
+    { cmd: '/pause', description: 'поставить текущий трек на паузу (нужен премиум Spotify)' },
     { cmd: '/auth', description: 'авторизоваться в Spotify (нужен премиум Spotify)' },
     { cmd: '/like', description: 'добавить последний трек в любимые (нужен премиум Spotify)' },
 ];
@@ -42,7 +39,7 @@ const allBtns = (ctx, txt, withImg) => {
             keyboard: [
                 [cmds[0], cmds[3]],
                 [cmds[1], cmds[2]],
-                [cmds[8], cmds[5]],
+                [cmds[9], cmds[6]],
             ],
             resize_keyboard: true
         },
@@ -52,7 +49,15 @@ const allBtns = (ctx, txt, withImg) => {
         : ctx.reply(text, btns);
 };
 
-const getTrack = async (getUserToken, ctx, year, tag) => {
+const parseCommandArgs = (ctx) => {
+    const text = ctx.message?.text?.trim();
+    if (!text) return null;
+    const args = text.split(' ').slice(1).join(' ').trim();
+    if (!args) return null;
+    return args.replace(/\s+/g, '+');
+};
+
+const fetchTrack = async (ctx, { year, tag, genre }, getUserToken) => {
     const userId = Number(ctx.from.id);
     const now = Date.now();
     const lastTime = lastRequestTime.get(userId) || 0;
@@ -75,49 +80,69 @@ const getTrack = async (getUserToken, ctx, year, tag) => {
     const messageId = searchingMessage.message_id;
 
     try {
-        const spotifyData = await getRandomTrack(ctx, year, tag);
-        const youtubeUrl = await findSongYouTubeByIsrc(spotifyData?.isrc, spotifyData);
+        const spotifyData = await getRandomTrack(ctx, year, tag, genre);
+        if (spotifyData) {
+            const youtubeUrl = await findSongYouTubeByIsrc(spotifyData?.isrc, spotifyData);
 
-        await ctx.telegram.deleteMessage(chatId, messageId);
+            await ctx.telegram.deleteMessage(chatId, messageId);
 
-        const trackId = spotifyData.link.split('/track/')[1];
-        const inlineBtns = [[{ text: 'Spotify', url: spotifyData.link }]];
-        youtubeUrl && inlineBtns.push([{ text: 'YouTube', url: youtubeUrl }]);
+            const trackId = spotifyData.link.split('/track/')[1];
+            const inlineBtns = [[{ text: '🟢 Spotify', url: spotifyData.link }]];
+            youtubeUrl && inlineBtns.push([{ text: '🟥 YouTube', url: youtubeUrl }]);
 
-        const token = await getUserToken(userId);
-        const commandType = year ? 'fresh' : tag === 'new' ? 'ultra_fresh' : tag === 'hipster' ? 'hipster' : 'track';
-        if (token) {
-            inlineBtns.push([
-                { text: 'Play', callback_data: `play_${trackId}` },
-                { text: 'Play с 1:00', callback_data: `playfrom_${trackId}` },
-                { text: 'Pause', callback_data: `pause_${trackId}` },
-                { text: 'Like', callback_data: `like_${trackId}` }
-            ]);
-            inlineBtns.push([
-                { text: 'Ещё + Play', callback_data: `moreplay_${commandType}_${trackId}` },
-                { text: 'Ещё + Play с 1:00', callback_data: `moreplayfrom_${commandType}_${trackId}` }
-            ]);
-        }
-
-        const reply = getPostTrackResult(spotifyData, youtubeUrl, limitCheck.remaining - 1);
-        await ctx.replyWithPhoto(
-            spotifyData.img ? { url: spotifyData.img } : { source: pngLogo },
-            {
-                caption: reply,
-                parse_mode: 'HTML',
-                reply_markup: { inline_keyboard: inlineBtns },
+            const token = await getUserToken(userId);
+            const commandType = genre ? 'genre' : year ? 'fresh' : tag === 'new' ? 'ultra_fresh' : tag === 'hipster' ? 'hipster' : 'track';
+            if (token) {
+                inlineBtns.push([
+                    { text: '▶️ Play', callback_data: `play_${trackId}` },
+                    { text: '⏩ с 1:00', callback_data: `playfrom_${trackId}` },
+                    { text: '⏸️ Pause', callback_data: `pause_${trackId}` },
+                    { text: '❤️ Like', callback_data: `like_${trackId}` }
+                ]);
+                inlineBtns.push([
+                    { text: '🔄▶️ Ещё + Play', callback_data: `moreplay_${commandType}_${genre}` },
+                    { text: '🔄⏩ Ещё + с 1:00', callback_data: `moreplayfrom_${commandType}_${genre}` }
+                ]);
             }
-        );
 
-        await allBtns(ctx);
-        incrementUserRequest(userId);
+            const reply = getPostTrackResult(spotifyData, youtubeUrl, limitCheck.remaining - 1);
+            await ctx.replyWithPhoto(
+                spotifyData.img ? { url: spotifyData.img } : { source: pngLogo },
+                {
+                    caption: reply,
+                    parse_mode: 'HTML',
+                    reply_markup: { inline_keyboard: inlineBtns },
+                }
+            );
 
-        global.userLastTracks.set(userId, spotifyData);
+            await allBtns(ctx);
+            incrementUserRequest(userId);
+            global.userLastTracks.set(userId, spotifyData);
+        } else {
+            await ctx.telegram.deleteMessage(chatId, messageId);
+            return ctx.reply('Не удалось найти трек. Попробуй ещё раз.', { parse_mode: 'HTML' });
+        }
     } catch (e) {
-        console.error('GetTrack Error:', e);
+        console.error('FetchTrack Error:', e);
         await ctx.telegram.deleteMessage(chatId, messageId).catch(() => {});
         return ctx.reply('Произошла неожиданная ошибка', { parse_mode: 'HTML' });
     }
+};
+
+const getTargetTrackId = async (ctx, isFromButton, trackId) => {
+    const userId = Number(ctx.from.id);
+    let targetTrackId = trackId;
+
+    if (!(isFromButton && targetTrackId)) {
+        const lastTrack = global.userLastTracks.get(userId);
+        if (!lastTrack) {
+            await ctx.reply('Сначала найди трек с помощью /track, /fresh, /ultra_fresh, /hipster или /genre.', { parse_mode: 'HTML' });
+            return null;
+        }
+        targetTrackId = lastTrack.link.split('/track/')[1];
+    }
+
+    return targetTrackId;
 };
 
 function setupHandlers(bot, { getUserToken }) {
@@ -144,15 +169,8 @@ ${DESCRIPTION}
             return auth(ctx);
         }
 
-        let targetTrackId = trackId;
-        let lastTrack = null;
-        if (!(isFromButton && targetTrackId)) {
-            lastTrack = global.userLastTracks.get(userId);
-            if (!lastTrack) {
-                return ctx.reply('Сначала найди трек с помощью /track, /fresh, /ultra_fresh или /hipster.', { parse_mode: 'HTML' });
-            }
-            targetTrackId = lastTrack.link.split('/track/')[1];
-        }
+        const targetTrackId = await getTargetTrackId(ctx, isFromButton, trackId);
+        if (!targetTrackId) return;
 
         let positionMs = 0;
         if (args) {
@@ -269,15 +287,8 @@ ${DESCRIPTION}
             return auth(ctx);
         }
 
-        let targetTrackId = trackId;
-        let lastTrack = null;
-        if (!(isFromButton && targetTrackId)) {
-            lastTrack = global.userLastTracks.get(userId);
-            if (!lastTrack) {
-                return ctx.reply('Сначала найди трек с помощью /track, /fresh, /ultra_fresh или /hipster.', { parse_mode: 'HTML' });
-            }
-            targetTrackId = lastTrack.link.split('/track/')[1];
-        }
+        const targetTrackId = await getTargetTrackId(ctx, isFromButton, trackId);
+        if (!targetTrackId) return;
 
         let searchingMessage = null;
         if (!isFromButton) {
@@ -309,6 +320,62 @@ ${DESCRIPTION}
         }
     };
 
+    const auth = async (ctx) => {
+        const userId = Number(ctx.from.id);
+        const token = await getUserToken(userId);
+
+        if (token) {
+            return ctx.reply('Ты уже авторизован', { parse_mode: 'HTML' });
+        }
+
+        const authUrl = `https://accounts.spotify.com/authorize?client_id=${config.SPOTIFY_CLIENT_ID}&response_type=code&redirect_uri=http://localhost:${config.PORT}/callback&scope=user-read-playback-state+user-modify-playback-state+user-library-modify&state=${userId}`;
+        return ctx.reply(
+            'Авторизуйся в Spotify (нужен премиум):',
+            {
+                parse_mode: 'HTML',
+                reply_markup: {
+                    inline_keyboard: [[{ text: 'Авторизоваться', url: authUrl }]],
+                },
+            }
+        );
+    };
+
+    const commands = {
+        track: {
+            handler: (ctx) => fetchTrack(ctx, {}, getUserToken),
+            description: 'рандомный трек',
+        },
+        fresh: {
+            handler: (ctx) => fetchTrack(ctx, { year: currentYear }, getUserToken),
+            description: `рандомный трек ${currentYear} года`,
+        },
+        ultra_fresh: {
+            handler: (ctx) => fetchTrack(ctx, { tag: 'new' }, getUserToken),
+            description: 'рандомный трек за последние две недели',
+        },
+        hipster: {
+            handler: (ctx) => fetchTrack(ctx, { tag: 'hipster' }, getUserToken),
+            description: 'рандомный трек с низкой популярностью',
+        },
+        genre: {
+            handler: async (ctx) => {
+                const genre = parseCommandArgs(ctx);
+                if (!genre) return ctx.reply('Укажи жанр, например /genre rock', { parse_mode: 'HTML' });
+                await fetchTrack(ctx, { genre }, getUserToken);
+            },
+            description: 'рандомный трек в указанном жанре, например /genre rock',
+        },
+        play: { handler: (ctx) => play(ctx) },
+        playfrom: { handler: (ctx) => playFrom(ctx) },
+        pause: { handler: (ctx) => pause(ctx) },
+        like: { handler: (ctx) => like(ctx) },
+        auth: { handler: auth },
+    };
+
+    Object.entries(commands).forEach(([cmd, { handler }]) => {
+        bot.command(cmd, handler);
+    });
+
     bot.command('premium', (ctx) => {
         const userId = Number(ctx.from.id);
         const isUserPremium = isPremium(userId);
@@ -331,21 +398,13 @@ ${DESCRIPTION}
         }
     });
 
-    bot.command('track', (ctx) => getTrack(getUserToken, ctx));
-    bot.command('fresh', (ctx) => getTrack(getUserToken, ctx, currentYear));
-    bot.command('ultra_fresh', (ctx) => getTrack(getUserToken, ctx, null, 'new'));
-    bot.command('hipster', (ctx) => getTrack(getUserToken, ctx, null, 'hipster'));
-    bot.command('playfrom', (ctx) => playFrom(ctx));
-    bot.command('play', (ctx) => play(ctx));
-    bot.command('pause', (ctx) => pause(ctx));
-    bot.command('like', (ctx) => like(ctx));
-
     const morePlay = async (ctx, isPlayFrom) => {
-        const commandType = ctx.match[1];
+        const [_, commandType, genreValue] = ctx.match;
         const year = commandType === 'fresh' ? currentYear : null;
         const tag = commandType === 'ultra_fresh' ? 'new' : commandType === 'hipster' ? 'hipster' : null;
+        const genre = commandType === 'genre' ? genreValue : null;
 
-        await getTrack(getUserToken, ctx, year, tag);
+        await fetchTrack(ctx, { year, tag, genre }, getUserToken);
         if (isPlayFrom) {
             await playFrom(ctx, true, null, '1:00');
         } else {
@@ -372,28 +431,6 @@ ${DESCRIPTION}
             { parse_mode: 'HTML' }
         );
     });
-
-    const auth = async (ctx) => {
-        const userId = Number(ctx.from.id);
-        const token = await getUserToken(userId);
-
-        if (token) {
-            return ctx.reply('Ты уже авторизован', { parse_mode: 'HTML' });
-        }
-
-        const authUrl = `https://accounts.spotify.com/authorize?client_id=${config.SPOTIFY_CLIENT_ID}&response_type=code&redirect_uri=http://localhost:${config.PORT}/callback&scope=user-read-playback-state+user-modify-playback-state+user-library-modify&state=${userId}`;
-        return ctx.reply(
-            'Авторизуйся в Spotify (нужен премиум):',
-            {
-                parse_mode: 'HTML',
-                reply_markup: {
-                    inline_keyboard: [[{ text: 'Авторизоваться', url: authUrl }]],
-                },
-            }
-        );
-    };
-
-    bot.command('auth', auth);
 
     bot.action(/^play_(.+)$/, async (ctx) => {
         const trackId = ctx.match[1];
