@@ -1,9 +1,6 @@
 const config = require("../config/config");
-const {saveUserRequest} = require("../storage/jsonStorage");
-const {findSongSpotify, findSongFromAlbumSpotify} = require("../services/spotifyService");
-const log = (message) => {
-    console.log(`[LOG] ${message}`);
-};
+const { saveUserRequest } = require("../storage/jsonStorage");
+const { findSongSpotify, findSongFromAlbumSpotify } = require("../services/spotifyService");
 
 function formatDate(dateString) {
     const [year, month, day] = dateString.split("-").map(Number);
@@ -22,77 +19,12 @@ const getPostTrackResult = (res, youtubeUrl, limit) => {
 by <i>${artists}</i>
 
 ${releaseDate}
-`
-+ (link ? `<a href="${link}">Spotify Link</a>
-` : '')
-+ (youtubeUrl ? `<a href="${youtubeUrl}">YouTube Link</a>` : '')
-+ `
+${link ? `<a href="${link}">Spotify Link</a>\n` : ''}${youtubeUrl ? `<a href="${youtubeUrl}">YouTube Link</a>` : ''}
 
 Осталось запросов сегодня: ${limit || 0}
-`
-+`
-@${botNickname} 
-`
-}
-
-function _generateRandomSpotifyQuery() {
-    // Латиница
-    const latinVowels = ['a', 'e', 'i', 'o', 'u'];
-    const latinConsonants = ['b', 'c', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'm', 'n', 'p', 'r', 's', 't', 'v', 'w', 'y'];
-
-    // Кириллица
-    const cyrillicVowels = ['а', 'е', 'ё', 'и', 'о', 'у', 'ы', 'э', 'ю', 'я'];
-    const cyrillicConsonants = ['б', 'в', 'г', 'д', 'ж', 'з', 'к', 'л', 'м', 'н', 'п', 'р', 'с', 'т', 'ф', 'х', 'ц', 'ч', 'ш', 'щ'];
-
-    // Цифры
-    const digits = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
-
-    // Случайный выбор типа запроса: 0 - цифра, 1 - 1 буква, 2 - 2 буквы, 3 - 3 буквы
-    const queryType = Math.floor(Math.random() * 4);
-    // Выбор алфавита: 0 - латиница, 1 - кириллица (не смешиваем)
-    const alphabet = Math.random() < 0.5 ? 'latin' : 'cyrillic';
-    // Случайный offset
-    const offset = Math.floor(Math.random() * 1000); // 0–999
-
-    let q = '';
-
-    // Генерация q в зависимости от типа
-    if (queryType === 0) {
-        // 1 цифра
-        q = digits[Math.floor(Math.random() * digits.length)];
-    } else if (queryType === 1) {
-        // 1 буква
-        q = alphabet === 'latin'
-            ? [...latinConsonants, ...latinVowels][Math.floor(Math.random() * (latinConsonants.length + latinVowels.length))]
-            : [...cyrillicConsonants, ...cyrillicVowels][Math.floor(Math.random() * (cyrillicConsonants.length + cyrillicVowels.length))];
-    } else if (queryType === 2) {
-        // 2 буквы (согласная + гласная)
-        if (alphabet === 'latin') {
-            const consonant = latinConsonants[Math.floor(Math.random() * latinConsonants.length)];
-            const vowel = latinVowels[Math.floor(Math.random() * latinVowels.length)];
-            q = consonant + vowel; // Например, "ba", "ri"
-        } else {
-            const consonant = cyrillicConsonants[Math.floor(Math.random() * cyrillicConsonants.length)];
-            const vowel = cyrillicVowels[Math.floor(Math.random() * cyrillicVowels.length)];
-            q = consonant + vowel; // Например, "ка", "по"
-        }
-    } else if (queryType === 3) {
-        // 3 буквы (согласная + гласная + согласная или согласная + гласная + буква)
-        if (alphabet === 'latin') {
-            const consonant1 = latinConsonants[Math.floor(Math.random() * latinConsonants.length)];
-            const vowel = latinVowels[Math.floor(Math.random() * latinVowels.length)];
-            const consonant2 = latinConsonants[Math.floor(Math.random() * latinConsonants.length)];
-            q = consonant1 + vowel + consonant2; // Например, "bar", "pin"
-        } else {
-            const consonant1 = cyrillicConsonants[Math.floor(Math.random() * cyrillicConsonants.length)];
-            const vowel = cyrillicVowels[Math.floor(Math.random() * cyrillicVowels.length)];
-            const consonant2 = cyrillicConsonants[Math.floor(Math.random() * cyrillicConsonants.length)];
-            q = consonant1 + vowel + consonant2; // Например, "кот", "мир"
-        }
-    }
-
-    return { q, offset };
-}
+@${botNickname}
+    `.trim();
+};
 
 function generateRandomSpotifyQuery(year, tag) {
     let alphabet, q = '';
@@ -189,16 +121,20 @@ function generateRandomSpotifyQuery(year, tag) {
 
 async function getRandomTrack(ctx, year, tag) {
     let spotifyData = null;
-    while (!spotifyData?.img) {
+    let attempts = 0;
+    const maxAttempts = 5;
+
+    while (!spotifyData?.img && attempts < maxAttempts) {
         const data = generateRandomSpotifyQuery(year, tag);
-        if (tag) {
-            spotifyData = await findSongFromAlbumSpotify(data);
-        } else {
-            spotifyData = await findSongSpotify(data);
-        }
-        saveUserRequest(ctx.from.id, `${ctx.from.username} - ${data.q} ${data.offset}: ${!!spotifyData}`)
+        spotifyData = tag ? await findSongFromAlbumSpotify(data) : await findSongSpotify(data);
+        saveUserRequest(ctx.from.id, `${ctx.from.username} - ${data.q} ${data.offset}: ${!!spotifyData}`);
+        attempts++;
+    }
+
+    if (!spotifyData?.img) {
+        console.log(`Failed to find track with image after ${maxAttempts} attempts`);
     }
     return spotifyData;
 }
 
-module.exports = { log, getPostTrackResult, getRandomTrack };
+module.exports = { getPostTrackResult, getRandomTrack };
