@@ -16,10 +16,6 @@ if (fs.existsSync(userLimitsFile)) {
     userLimits = JSON.parse(fs.readFileSync(userLimitsFile, 'utf8'));
 }
 
-function getUserRequests(userId) {
-    return (userRequests[userId] || []);
-}
-
 function saveUserRequest(userId, request) {
     if (!userRequests[userId]) {
         userRequests[userId] = [];
@@ -75,7 +71,7 @@ function checkUserLimit(userId) {
     }
 
     // Определяем лимит в зависимости от статуса
-    const dailyLimit = isPremium(userId) ? 100 : config.GLOBAL_LIMIT;
+    const dailyLimit = isPremium(userId) ? config.PREMIUM_LIMIT : config.GLOBAL_LIMIT;
 
     // Проверяем, превышен ли лимит
     if (userLimits[userId].count >= dailyLimit) {
@@ -102,4 +98,4 @@ function premiumUntil(userId) {
     return new Date(userLimits[userId]?.premiumUntil)?.toLocaleDateString()
 }
 
-module.exports = { getUserRequests, saveUserRequest, checkUserLimit, incrementUserRequest, activatePremium, premiumUntil, isPremium };
+module.exports = { saveUserRequest, checkUserLimit, incrementUserRequest, activatePremium, premiumUntil, isPremium };

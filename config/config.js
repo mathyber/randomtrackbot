@@ -7,7 +7,8 @@ const config = {
     SPOTIFY_CLIENT_SECRET: process.env.SPOTIFY_CLIENT_SECRET,
     YOUTUBE_API_KEY: process.env.YOUTUBE_API_KEY,
     BOT_NICKNAME: 'musicorandom_bot',
-    GLOBAL_LIMIT: 25
+    GLOBAL_LIMIT: 100,
+    PREMIUM_LIMIT: 1000
 };
 
 module.exports = config;

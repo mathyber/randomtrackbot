@@ -1,8 +1,20 @@
 const axios = require('axios');
 const config = require('../config/config');
-const {getRandomNumberInclusive} = require("../src/utils");
 
 let accessToken = null;
+
+function getTrackParam(track, add = {}) {
+    return {
+        title: Buffer.from(track?.name || '', 'utf8').toString('utf8'),
+        artists: track?.artists?.map(a => Buffer.from(a?.name, 'utf8').toString('utf8')),
+        img: track?.album?.images[0]?.url,
+        release_date: track?.album?.release_date,
+        link: track?.external_urls?.spotify,
+        isrc: track?.external_ids?.isrc,
+        popularity: track?.popularity,
+        ...add
+    }
+}
 
 async function getAccessToken() {
     try {
@@ -25,58 +37,109 @@ async function getAccessToken() {
     }
 }
 
-async function findSongSpotify(keywordsData) {
+async function findSongSpotify({q, offset}) {
     if (!accessToken) {
-        console.log('No access token, attempting to get one...');
         const token = await getAccessToken();
         if (!token) return null;
     }
 
     try {
-        const query = keywordsData.trim();
-        console.log('Spotify Query (raw):', query);
-
         const response = await axios.get(`https://api.spotify.com/v1/search`, {
             headers: {
                 Authorization: `Bearer ${accessToken}`,
             },
             params: {
-                q: keywordsData,
+                q,
                 type: 'track',
-                limit: getRandomNumberInclusive(30),
+                limit: 1,
+                offset
                 // market: 'AU',
             },
-            responseType: 'json', // Явно указываем тип ответа
+            responseType: 'json',
         });
 
-        // console.log('Spotify Raw Response (before parse):', JSON.stringify(response.data, null, 2));
         if (response.data.tracks && response.data.tracks.items.length > 0) {
-            const track = response.data.tracks.items[getRandomNumberInclusive(response.data.tracks.items.length)];
-            console.log(track)
-
-            // Явное декодирование
-            const result = {
-                title: Buffer.from(track.name, 'utf8').toString('utf8'), // Принудительное декодирование
-                artists: track.artists.map(a => Buffer.from(a.name, 'utf8').toString('utf8')),
-                img: track.album?.images[0]?.url,
-                release_date: track.album?.release_date,
-                link: track.external_urls?.spotify,
-                isrc: track.external_ids.isrc
-            };
-            console.log('Spotify Parsed Data:', result);
+            const track = response.data.tracks.items[0];
+         //   console.log(response.data.tracks.items[0].name, response.data.tracks.items[0].artists?.map(a => a.name))
+            const result = getTrackParam(track);
+        //    console.log(result.popularity)
             return result;
         }
-        console.log('No tracks found for query:', query);
         return null;
     } catch (error) {
         console.error('Spotify Search Error:', error.response ? `${error.response.status}: ${JSON.stringify(error.response.data)}` : error.message);
         if (error.response && error.response.status === 401) {
             console.log('Token expired, refreshing...');
             accessToken = await getAccessToken();
-            return findSongSpotify(keywordsData);
+            return findSongSpotify({q, offset});
         }
         return null;
     }
 }
 
-module.exports = {findSongSpotify};
+async function findSongFromAlbumSpotify({q, offset}) {
+    if (!accessToken) {
+        const token = await getAccessToken();
+        if (!token) return null;
+    }
+
+    try {
+        let albumResponse = null;
+
+        while (!albumResponse?.data?.albums?.items?.length) {
+            albumResponse = await axios.get(`https://api.spotify.com/v1/search`, {
+                headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                },
+                params: {
+                    q,
+                    type: 'album',
+                    limit: 1,
+                    offset,
+                },
+                responseType: 'json',
+            });
+            !albumResponse?.data?.albums?.items?.length && console.log('NET OLBOMOF')
+        }
+
+        const album = albumResponse.data?.albums?.items[0];
+
+        const albumId = album.id;
+
+        const tracksResponse = await axios.get(`https://api.spotify.com/v1/albums/${albumId}/tracks`, {
+            headers: {
+                Authorization: `Bearer ${accessToken}`,
+            },
+            params: {
+                limit: 50,
+            },
+            responseType: 'json',
+        });
+
+        const tracks = tracksResponse.data.items;
+        const randomTrack = tracks[Math.floor(Math.random() * tracks.length)];
+
+        const trackResponse = await axios.get(`https://api.spotify.com/v1/tracks/${randomTrack.id}`, {
+            headers: {
+                Authorization: `Bearer ${accessToken}`,
+            },
+            responseType: 'json',
+        });
+
+        const track = trackResponse.data;
+
+        console.log(track.name, track.artists?.map(a => a.name), track.popularity)
+        const result = getTrackParam(track);
+        return result;
+    } catch (error) {
+        console.error('Spotify Search Error:', error.response ? `${error.response.status}: ${JSON.stringify(error.response.data)}` : error.message);
+        if (error.response && error.response.status === 401) {
+            console.log('Token expired, refreshing...');
+            accessToken = await getAccessToken();
+            return findSongSpotify({q, offset});
+        }
+        return null;
+    }
+}
+
+module.exports = {findSongSpotify, findSongFromAlbumSpotify};
