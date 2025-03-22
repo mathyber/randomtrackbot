@@ -12,7 +12,6 @@ global.userLastTracks = userLastTracks;
 async function refreshToken(userId) {
     const tokens = global.userTokens.get(userId);
     if (!tokens?.refresh_token) {
-        console.log(`No refresh token for userId: ${userId}`);
         return null;
     }
 
@@ -33,7 +32,6 @@ async function refreshToken(userId) {
             access_token,
             expires_at: Date.now() + (expires_in * 1000) - 60000,
         });
-        console.log(`Token refreshed for userId: ${userId}, new token: ${access_token}`);
         return access_token;
     } catch (error) {
         console.error('Refresh Token Error:', error.response?.data || error.message);
@@ -44,14 +42,11 @@ async function refreshToken(userId) {
 async function getUserToken(userId) {
     const tokens = global.userTokens.get(userId);
     if (!tokens) {
-        console.log(`No tokens found for userId: ${userId}`);
         return null;
     }
     if (Date.now() > tokens.expires_at) {
-        console.log(`Token expired for userId: ${userId}, refreshing...`);
         return await refreshToken(userId);
     }
-    console.log(`Using existing token for userId: ${userId}: ${tokens.access_token}`);
     return tokens.access_token;
 }
 

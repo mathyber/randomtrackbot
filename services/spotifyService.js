@@ -35,7 +35,6 @@ async function getAccessToken() {
         );
         accessToken = response.data.access_token;
         tokenExpiration = Date.now() + (response.data.expires_in * 1000) - 60000; // Минус минута для запаса
-        console.log('Spotify Access Token obtained:', accessToken);
         return accessToken;
     } catch (error) {
         console.error('Spotify Token Error:', error.response ? `${error.response.status}: ${JSON.stringify(error.response.data)}` : error.message);
@@ -120,7 +119,6 @@ async function findSongFromAlbumSpotify({ q, offset }) {
         });
 
         const track = trackResponse.data;
-        console.log(`Found track: ${track.name} by ${track.artists?.map(a => a.name).join(', ')}, popularity: ${track.popularity}`);
         return getTrackParam(track);
     } catch (error) {
         console.error(`Spotify Album Search Error (q=${q}, offset=${offset}):`, error.response ? `${error.response.status}: ${JSON.stringify(error.response.data)}` : error.message);
