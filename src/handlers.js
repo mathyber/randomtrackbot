@@ -10,6 +10,7 @@ const {
 const config = require('../config/config');
 const { getPostTrackResult, getRandomTrack } = require("./utils");
 const path = require('path');
+const axios = require('axios');
 
 const pngLogo = path.join(__dirname, '../files/1.png');
 const currentYear = new Date().getFullYear();
@@ -19,11 +20,10 @@ const COMMANDS = [
     { cmd: '/fresh', description: `рандомный трек, выпущенный в ${currentYear} году` },
     { cmd: '/ultra_fresh', description: `рандомный трек, выпущенный за последние две недели` },
     { cmd: '/hipster', description: `рандомный трек с низкой популярностью` },
+    { cmd: '/remote', description: 'запустить последний трек на твоём устройстве (нужен премиум Spotify)' },
     { cmd: '/help', description: `все команды` },
 ];
 const ALL_COMMANDS_TEXT = COMMANDS.map(c => `${c.cmd} - ${c.description}`).join('\n');
-
-// Храним время последнего запроса для защиты от спама
 const lastRequestTime = new Map();
 
 const allBtns = (ctx, txt, withImg) => {
@@ -35,7 +35,7 @@ const allBtns = (ctx, txt, withImg) => {
             keyboard: [
                 [cmds[0], cmds[3]],
                 [cmds[1], cmds[2]],
-                [cmds[4]],
+                [cmds[4], cmds[5]],
             ],
             resize_keyboard: true
         },
@@ -46,11 +46,10 @@ const allBtns = (ctx, txt, withImg) => {
 };
 
 const getTrack = async (ctx, year, tag) => {
-    const userId = ctx.from.id;
+    const userId = Number(ctx.from.id); // Приводим к числу
     const now = Date.now();
     const lastTime = lastRequestTime.get(userId) || 0;
 
-    // Ограничение: 1 запрос в секунду на пользователя
     if (now - lastTime < 1000) {
         return ctx.reply('Слишком быстро! Подожди секунду.', { parse_mode: 'HTML' });
     }
@@ -74,27 +73,25 @@ const getTrack = async (ctx, year, tag) => {
 
         await ctx.telegram.deleteMessage(chatId, messageId);
 
-        const reply = getPostTrackResult(spotifyData, youtubeUrl, limitCheck.remaining - 1);
-
-        const inlineBtns = [
-            [{ text: 'Spotify', url: spotifyData.link }],
-        ];
-
+        const inlineBtns = [[{ text: 'Spotify', url: spotifyData.link }]];
         youtubeUrl && inlineBtns.push([{ text: 'YouTube', url: youtubeUrl }]);
 
+        const reply = getPostTrackResult(spotifyData, youtubeUrl, limitCheck.remaining - 1);
         await ctx.replyWithPhoto(
             spotifyData.img ? { url: spotifyData.img } : { source: pngLogo },
             {
                 caption: reply,
                 parse_mode: 'HTML',
-                reply_markup: {
-                    inline_keyboard: inlineBtns,
-                },
+                reply_markup: { inline_keyboard: inlineBtns },
             }
         );
 
         await allBtns(ctx);
         incrementUserRequest(userId);
+
+        global.userLastTracks.set(userId, spotifyData);
+        console.log(`Saved last track for userId ${userId}: ${spotifyData.title} (${spotifyData.link})`);
+        console.log(`Current userLastTracks for ${userId}:`, global.userLastTracks.get(userId));
     } catch (e) {
         console.error('GetTrack Error:', e);
         await ctx.telegram.deleteMessage(chatId, messageId).catch(() => {});
@@ -102,9 +99,9 @@ const getTrack = async (ctx, year, tag) => {
     }
 };
 
-function setupHandlers(bot) {
+function setupHandlers(bot, { botStartTime, getUserToken, refreshToken, userLastTracks }) {
     bot.start((ctx) => {
-        const userId = ctx.from.id;
+        const userId = Number(ctx.from.id);
         saveUserRequest(userId, 'start');
         allBtns(ctx, `
 Привет! Это бот, который выдаст тебе ссылку Spotify на рандомный трек
@@ -118,7 +115,7 @@ ${DESCRIPTION}
     });
 
     bot.command('premium', (ctx) => {
-        const userId = ctx.from.id;
+        const userId = Number(ctx.from.id);
         const isUserPremium = isPremium(userId);
 
         if (isUserPremium) {
@@ -144,8 +141,107 @@ ${DESCRIPTION}
     bot.command('ultra_fresh', (ctx) => getTrack(ctx, null, 'new'));
     bot.command('hipster', (ctx) => getTrack(ctx, null, 'hipster'));
 
+    bot.command('remote', async (ctx) => {
+        const userId = Number(ctx.from.id);
+        const token = await getUserToken(userId);
+
+        if (!token) {
+            const authUrl = `https://accounts.spotify.com/authorize?client_id=${config.SPOTIFY_CLIENT_ID}&response_type=code&redirect_uri=http://localhost:${config.PORT}/callback&scope=user-read-playback-state+user-modify-playback-state&state=${userId}`;
+            return ctx.reply(
+                'Чтобы запустить трек на твоём устройстве, авторизуйся в Spotify (нужен премиум и открытый плеер где-то):',
+                {
+                    parse_mode: 'HTML',
+                    reply_markup: {
+                        inline_keyboard: [[{ text: 'Авторизоваться', url: authUrl }]],
+                    },
+                }
+            );
+        }
+
+        const lastTrack = global.userLastTracks.get(userId);
+        if (!lastTrack) {
+            return ctx.reply('Сначала найди трек', { parse_mode: 'HTML' });
+        }
+        console.log(`Remote using last track for userId ${userId}: ${lastTrack.title} (${lastTrack.link})`);
+
+        const searchingMessage = await ctx.reply('Проверяем твои устройства... ⏳', { parse_mode: 'HTML' });
+        try {
+            const devicesResponse = await axios.get('https://api.spotify.com/v1/me/player/devices', {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            const devices = devicesResponse.data.devices;
+
+            if (!devices.length) {
+                await ctx.telegram.deleteMessage(ctx.chat.id, searchingMessage.message_id);
+                return ctx.reply('Не нашёл активных устройств. Открой Spotify где-нибудь и попробуй снова.', { parse_mode: 'HTML' });
+            }
+
+            await ctx.telegram.deleteMessage(ctx.chat.id, searchingMessage.message_id);
+
+            const sessionId = `${userId}_${Date.now()}`;
+            global.remoteSessions.set(sessionId, { trackId: lastTrack.link.split('/track/')[1], devices });
+            console.log(`Session ${sessionId} created with trackId: ${lastTrack.link.split('/track/')[1]}`);
+
+            const inlineKeyboard = devices.map((device, index) => [{
+                text: `${device.name} (${device.type}) ${device.is_active ? '[активно]' : ''}`,
+                callback_data: `play_${sessionId}_${index}`,
+            }]);
+            await ctx.reply(`Выбери, где запустить "${lastTrack.title}" на 15 сек:`, {
+                parse_mode: 'HTML',
+                reply_markup: { inline_keyboard: inlineKeyboard },
+            });
+        } catch (error) {
+            console.error('Remote Error:', error.response?.data || error.message);
+            await ctx.telegram.deleteMessage(ctx.chat.id, searchingMessage.message_id);
+            const errorMsg = error.response?.data?.error?.message || 'Что-то пошло не так.';
+            return ctx.reply(`Ошибка: ${errorMsg}`, { parse_mode: 'HTML' });
+        }
+    });
+
+    bot.action(/play_(.+)_(\d+)/, async (ctx) => {
+        const [_, sessionId, deviceIndex] = ctx.match;
+        const userId = Number(ctx.from.id);
+        const token = await getUserToken(userId);
+        const session = global.remoteSessions.get(sessionId);
+
+        if (!session) {
+            return ctx.reply('Сессия устарела. Попробуй /remote заново.', { parse_mode: 'HTML' });
+        }
+
+        if (!token) {
+            return ctx.reply('Токен недействителен. Попробуй переавторизоваться через /remote.', { parse_mode: 'HTML' });
+        }
+
+        const trackId = session.trackId;
+        const deviceId = session.devices[deviceIndex].id;
+        console.log(`Attempting to play trackId ${trackId} on device ${deviceId} with token ${token.substring(0, 10)}...`);
+
+        try {
+            await axios.put(`https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`, {
+                uris: [`spotify:track:${trackId}`],
+                position_ms: 0,
+            }, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+
+            await ctx.reply('Заебца, ща запустим! Играет 15 сек...', { parse_mode: 'HTML' });
+
+            setTimeout(async () => {
+                await axios.put('https://api.spotify.com/v1/me/player/pause', {}, {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+                await ctx.reply('Стоп, 15 сек прошло!', { parse_mode: 'HTML' });
+            }, 15000);
+
+            global.remoteSessions.delete(sessionId);
+        } catch (error) {
+            console.error('Play Error:', error.response?.data || error.message);
+            await ctx.reply(`Не получилось запустить: ${error.response?.data?.error?.message || 'Ошибка.'}`, { parse_mode: 'HTML' });
+        }
+    });
+
     bot.action('activate_premium', async (ctx) => {
-        const userId = ctx.from.id;
+        const userId = Number(ctx.from.id);
         const chatId = ctx.chat.id;
         activatePremium(userId);
 

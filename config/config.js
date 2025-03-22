@@ -8,7 +8,8 @@ const config = {
     YOUTUBE_API_KEY: process.env.YOUTUBE_API_KEY,
     BOT_NICKNAME: 'musicorandom_bot',
     GLOBAL_LIMIT: 100,
-    PREMIUM_LIMIT: 1000
+    PREMIUM_LIMIT: 1000,
+    PORT: 3000
 };
 
 module.exports = config;
