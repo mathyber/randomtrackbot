@@ -58,7 +58,7 @@ const getTrack = async (getUserToken, ctx, year, tag) => {
     const lastTime = lastRequestTime.get(userId) || 0;
 
     if (now - lastTime < 1000) {
-        return ctx.reply('Слишком быстро! Подожди секунду.', {parse_mode: 'HTML'});
+        return ctx.reply('Слишком быстро! Подожди секунду.', { parse_mode: 'HTML' });
     }
     lastRequestTime.set(userId, now);
 
@@ -66,11 +66,11 @@ const getTrack = async (getUserToken, ctx, year, tag) => {
     if (!limitCheck.allowed) {
         return ctx.reply(
             `Ты превысил лимит запросов (${config.GLOBAL_LIMIT}). Осталось: ${limitCheck.remaining}. Попробуй завтра!`,
-            {parse_mode: 'HTML'}
+            { parse_mode: 'HTML' }
         );
     }
 
-    const searchingMessage = await ctx.reply('Ищем, что тебе послушать... ⏳', {parse_mode: 'HTML'});
+    const searchingMessage = await ctx.reply('Ищем, что тебе послушать... ⏳', { parse_mode: 'HTML' });
     const chatId = searchingMessage.chat.id;
     const messageId = searchingMessage.message_id;
 
@@ -80,27 +80,32 @@ const getTrack = async (getUserToken, ctx, year, tag) => {
 
         await ctx.telegram.deleteMessage(chatId, messageId);
 
-        const trackId = spotifyData.link.split('/track/')[1]; // Извлекаем trackId
-        const inlineBtns = [[{text: 'Spotify', url: spotifyData.link}]];
-        youtubeUrl && inlineBtns.push([{text: 'YouTube', url: youtubeUrl}]);
+        const trackId = spotifyData.link.split('/track/')[1];
+        const inlineBtns = [[{ text: 'Spotify', url: spotifyData.link }]];
+        youtubeUrl && inlineBtns.push([{ text: 'YouTube', url: youtubeUrl }]);
 
         const token = await getUserToken(userId);
+        const commandType = year ? 'fresh' : tag === 'new' ? 'ultra_fresh' : tag === 'hipster' ? 'hipster' : 'track'; // Определяем тип команды
         if (token) {
             inlineBtns.push([
-                {text: 'Play', callback_data: `play_${trackId}`},
-                {text: 'Play с 1:00', callback_data: `playfrom_${trackId}`},
-                {text: 'Pause', callback_data: `pause_${trackId}`},
-                {text: 'Like', callback_data: `like_${trackId}`}
+                { text: 'Play', callback_data: `play_${trackId}` },
+                { text: 'Play с 1:00', callback_data: `playfrom_${trackId}` },
+                { text: 'Pause', callback_data: `pause_${trackId}` },
+                { text: 'Like', callback_data: `like_${trackId}` }
+            ]);
+            inlineBtns.push([
+                { text: 'Ещё + Play', callback_data: `moreplay_${commandType}_${trackId}` },
+                { text: 'Ещё + Play с 1:00', callback_data: `moreplayfrom_${commandType}_${trackId}` }
             ]);
         }
 
         const reply = getPostTrackResult(spotifyData, youtubeUrl, limitCheck.remaining - 1);
         await ctx.replyWithPhoto(
-            spotifyData.img ? {url: spotifyData.img} : {source: pngLogo},
+            spotifyData.img ? { url: spotifyData.img } : { source: pngLogo },
             {
                 caption: reply,
                 parse_mode: 'HTML',
-                reply_markup: {inline_keyboard: inlineBtns},
+                reply_markup: { inline_keyboard: inlineBtns },
             }
         );
 
@@ -109,16 +114,14 @@ const getTrack = async (getUserToken, ctx, year, tag) => {
 
         global.userLastTracks.set(userId, spotifyData);
         console.log(`Saved last track for userId ${userId}: ${spotifyData.title} (${spotifyData.link})`);
-        console.log(`Current userLastTracks for ${userId}:`, global.userLastTracks.get(userId));
     } catch (e) {
         console.error('GetTrack Error:', e);
-        await ctx.telegram.deleteMessage(chatId, messageId).catch(() => {
-        });
-        return ctx.reply('Произошла неожиданная ошибка', {parse_mode: 'HTML'});
+        await ctx.telegram.deleteMessage(chatId, messageId).catch(() => {});
+        return ctx.reply('Произошла неожиданная ошибка', { parse_mode: 'HTML' });
     }
 };
 
-function setupHandlers(bot, {botStartTime, getUserToken, refreshToken, userLastTracks}) {
+function setupHandlers(bot, {getUserToken}) {
     bot.start((ctx) => {
         const userId = Number(ctx.from.id);
         saveUserRequest(userId, 'start');
@@ -133,9 +136,10 @@ ${DESCRIPTION}
         `, true);
     });
 
-    const play = async (ctx, isFromButton = false, trackId = null) => {
+    const playSong = async (isPlayFrom = false, ctx, isFromButton = false, trackId = null, time) => {
         const userId = Number(ctx.from.id);
         const token = await getUserToken(userId);
+        const args = isPlayFrom ? (time || ctx.message.text.split(' ').slice(1).join('')) : null;
 
         if (!token) {
             return auth(ctx);
@@ -143,9 +147,7 @@ ${DESCRIPTION}
 
         let targetTrackId = trackId;
         let lastTrack = null;
-        if (isFromButton && targetTrackId) {
-            lastTrack = {link: `https://open.spotify.com/track/${targetTrackId}`};
-        } else {
+        if (!(isFromButton && targetTrackId)) {
             lastTrack = global.userLastTracks.get(userId);
             if (!lastTrack) {
                 return ctx.reply('Сначала найди трек с помощью /track, /fresh, /ultra_fresh или /hipster.', {parse_mode: 'HTML'});
@@ -153,75 +155,6 @@ ${DESCRIPTION}
             targetTrackId = lastTrack.link.split('/track/')[1];
         }
         console.log(`Play using trackId for userId ${userId}: ${targetTrackId}`);
-
-        let searchingMessage = null;
-        if (!isFromButton) {
-            searchingMessage = await ctx.reply('Проверяем активное устройство... ⏳', {parse_mode: 'HTML'});
-        }
-        try {
-            const devicesResponse = await axios.get('https://api.spotify.com/v1/me/player/devices', {
-                headers: {Authorization: `Bearer ${token}`},
-            });
-            const devices = devicesResponse.data.devices;
-            console.log(`Devices for userId ${userId}:`, devices);
-
-            const activeDevice = devices.find(device => device.is_active);
-            if (!activeDevice) {
-                if (searchingMessage) await ctx.telegram.deleteMessage(ctx.chat.id, searchingMessage.message_id).catch(() => {
-                });
-                return ctx.reply('Не нашёл активных устройств. Открой Spotify где-нибудь и попробуй снова.', {parse_mode: 'HTML'});
-            }
-            console.log(`Active device found: ${activeDevice.name} (${activeDevice.id})`);
-
-            console.log(`Sending play request for trackId: ${targetTrackId}`);
-            await axios.put('https://api.spotify.com/v1/me/player/play', {
-                uris: [`spotify:track:${targetTrackId}`],
-                position_ms: 0,
-            }, {
-                headers: {Authorization: `Bearer ${token}`},
-            });
-
-            if (isFromButton) {
-                await ctx.answerCbQuery('Воспроизводится');
-            } else if (searchingMessage) {
-                try {
-                    await ctx.telegram.deleteMessage(ctx.chat.id, searchingMessage.message_id);
-                    await ctx.reply(`Запускаем трек на ${activeDevice.name}!`, {parse_mode: 'HTML'});
-                } catch (telegramError) {
-                    console.error('Telegram Error after play:', telegramError);
-                    await ctx.reply('Трек запущен, но что-то пошло не так с сообщением.', {parse_mode: 'HTML'});
-                }
-            }
-        } catch (error) {
-            console.error('Play Error:', error.response?.data || error.message);
-            if (searchingMessage) await ctx.telegram.deleteMessage(ctx.chat.id, searchingMessage.message_id).catch(() => {
-            });
-            const errorMsg = error.response?.data?.error?.message || 'Не получилось запустить.';
-            return ctx.reply(`Ошибка воспроизведения: ${errorMsg} Попробуй открыть Spotify и проверить активное устройство.`, {parse_mode: 'HTML'});
-        }
-    };
-
-    const playFrom = async (ctx, time, isFromButton = false, trackId = null) => {
-        const userId = Number(ctx.from.id);
-        const token = await getUserToken(userId);
-        const args = time || ctx.message.text.split(' ').slice(1).join('');
-
-        if (!token) {
-            return auth(ctx);
-        }
-
-        let targetTrackId = trackId;
-        let lastTrack = null;
-        if (isFromButton && targetTrackId) {
-            lastTrack = {link: `https://open.spotify.com/track/${targetTrackId}`};
-        } else {
-            lastTrack = global.userLastTracks.get(userId);
-            if (!lastTrack) {
-                return ctx.reply('Сначала найди трек с помощью /track, /fresh, /ultra_fresh или /hipster.', {parse_mode: 'HTML'});
-            }
-            targetTrackId = lastTrack.link.split('/track/')[1];
-        }
-        console.log(`Playfrom using trackId for userId ${userId}: ${targetTrackId}`);
 
         let positionMs = 0;
         if (args) {
@@ -246,13 +179,12 @@ ${DESCRIPTION}
 
             const activeDevice = devices.find(device => device.is_active);
             if (!activeDevice) {
-                if (searchingMessage) await ctx.telegram.deleteMessage(ctx.chat.id, searchingMessage.message_id).catch(() => {
-                });
+                if (searchingMessage) await ctx.telegram.deleteMessage(ctx.chat.id, searchingMessage.message_id).catch(() => {});
                 return ctx.reply('Не нашёл активных устройств. Открой Spotify где-нибудь и попробуй снова.', {parse_mode: 'HTML'});
             }
             console.log(`Active device found: ${activeDevice.name} (${activeDevice.id})`);
 
-            console.log(`Sending playfrom request for trackId: ${targetTrackId} at ${positionMs}ms`);
+            console.log(`Sending play request for trackId: ${targetTrackId} at ${positionMs}ms`);
             await axios.put('https://api.spotify.com/v1/me/player/play', {
                 uris: [`spotify:track:${targetTrackId}`],
                 position_ms: positionMs,
@@ -261,18 +193,18 @@ ${DESCRIPTION}
             });
 
             if (isFromButton) {
-                await ctx.answerCbQuery('Воспроизводится с 1:00');
+                await ctx.answerCbQuery(`Воспроизводится с ${args || 'начала'}`);
             } else if (searchingMessage) {
                 try {
                     await ctx.telegram.deleteMessage(ctx.chat.id, searchingMessage.message_id);
                     await ctx.reply(`Запускаем трек на ${activeDevice.name} с ${args || 'начала'}!`, {parse_mode: 'HTML'});
                 } catch (telegramError) {
-                    console.error('Telegram Error after playfrom:', telegramError);
+                    console.error('Telegram Error after play:', telegramError);
                     await ctx.reply('Трек запущен, но что-то пошло не так с сообщением.', {parse_mode: 'HTML'});
                 }
             }
         } catch (error) {
-            console.error('Playfrom Error:', error.response?.data || error.message);
+            console.error('Play Error:', error.response?.data || error.message);
             if (searchingMessage) await ctx.telegram.deleteMessage(ctx.chat.id, searchingMessage.message_id).catch(() => {
             });
             const errorMsg = error.response?.data?.error?.message || 'Не получилось запустить.';
@@ -280,9 +212,15 @@ ${DESCRIPTION}
         }
     };
 
+    const play = async (ctx, isFromButton = false, trackId = null) => {
+        await playSong(false, ctx, isFromButton, trackId);
+    };
+
+    const playFrom = async (ctx, isFromButton = false, trackId = null, time) => {
+        await playSong(true, ctx, isFromButton, trackId, time);
+    };
+
     const pause = async (ctx, isFromButton = false, trackId = null) => {
-        console.error('isFromButton')
-        console.error(isFromButton)
         const userId = Number(ctx.from.id);
         const token = await getUserToken(userId);
 
@@ -421,6 +359,22 @@ ${DESCRIPTION}
     bot.command('pause', (ctx) => pause(ctx));
     bot.command('like', (ctx) => like(ctx));
 
+    const morePlay = async (ctx, isPlayFrom) => {
+        const commandType = ctx.match[1];
+        const year = commandType === 'fresh' ? currentYear : null;
+        const tag = commandType === 'ultra_fresh' ? 'new' : commandType === 'hipster' ? 'hipster' : null;
+
+        await getTrack(getUserToken, ctx, year, tag);
+        if (isPlayFrom) {
+            await playFrom(ctx, true, null,  '1:00');
+        } else {
+            await play(ctx, true);
+        }
+    }
+
+    bot.action(/^moreplay_(.+)_([^_]+)$/, (ctx) => morePlay(ctx));
+    bot.action(/^moreplayfrom_(.+)_([^_]+)$/, (ctx) => morePlay(ctx, true));
+
     bot.action('activate_premium', async (ctx) => {
         const userId = Number(ctx.from.id);
         const chatId = ctx.chat.id;
@@ -467,7 +421,7 @@ ${DESCRIPTION}
 
     bot.action(/^playfrom_(.+)$/, async (ctx) => {
         const trackId = ctx.match[1];
-        await playFrom(ctx, '1:00', true, trackId);
+        await playFrom(ctx, true, trackId, '1:00');
     });
 
     bot.action(/^pause_(.+)$/, async (ctx) => {

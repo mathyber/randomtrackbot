@@ -2,7 +2,7 @@ const axios = require('axios');
 const config = require('../config/config');
 
 let accessToken = null;
-let tokenExpiration = 0; // Время истечения токена
+let tokenExpiration = 0;
 
 function getTrackParam(track, add = {}) {
     return {
@@ -19,7 +19,7 @@ function getTrackParam(track, add = {}) {
 
 async function getAccessToken() {
     if (accessToken && Date.now() < tokenExpiration) {
-        return accessToken; // Используем существующий токен, если он ещё валиден
+        return accessToken;
     }
 
     try {
