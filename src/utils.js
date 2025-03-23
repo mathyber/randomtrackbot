@@ -127,7 +127,7 @@ async function getRandomTrack(ctx, year, tag, genre, onlyBigTitle = false) {
     let spotifyData = null;
     let attempts = 0;
     const maxAttempts = !onlyBigTitle ? 10 : 1000;
-    const antiClassic = !onlyBigTitle && !['classic', 'instrumental'].includes(genre)
+    const antiClassic = !onlyBigTitle && !['classical', 'instrumental'].includes(genre)
 
     const lengthFilter = (length) => {
         if (antiClassic) {
