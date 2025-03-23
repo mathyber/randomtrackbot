@@ -57,7 +57,7 @@ const parseCommandArgs = (ctx) => {
     return args.replace(/\s+/g, '+');
 };
 
-const fetchTrack = async (ctx, { year, tag, genre }, getUserToken) => {
+const fetchTrack = async (ctx, { year, tag, genre, onlyBigTitle = false }, getUserToken) => {
     const userId = Number(ctx.from.id);
     const now = Date.now();
     const lastTime = lastRequestTime.get(userId) || 0;
@@ -80,7 +80,7 @@ const fetchTrack = async (ctx, { year, tag, genre }, getUserToken) => {
     const messageId = searchingMessage.message_id;
 
     try {
-        const spotifyData = await getRandomTrack(ctx, year, tag, genre);
+        const spotifyData = await getRandomTrack(ctx, year, tag, genre, onlyBigTitle);
         if (spotifyData) {
             const youtubeUrl = await findSongYouTubeByIsrc(spotifyData?.isrc, spotifyData);
 
@@ -91,7 +91,7 @@ const fetchTrack = async (ctx, { year, tag, genre }, getUserToken) => {
             youtubeUrl && inlineBtns.push([{ text: '🟥 YouTube', url: youtubeUrl }]);
 
             const token = await getUserToken(userId);
-            const commandType = genre ? 'genre' : year ? 'fresh' : tag === 'new' ? 'ultra_fresh' : tag === 'hipster' ? 'hipster' : 'track';
+            const commandType = onlyBigTitle ? 'big_title' : genre ? 'genre' : year ? 'fresh' : tag === 'new' ? 'ultra_fresh' : tag === 'hipster' ? 'hipster' : 'track';
             if (token) {
                 inlineBtns.push([
                     { text: '▶️ Play', callback_data: `play_${trackId}` },
@@ -365,6 +365,10 @@ ${DESCRIPTION}
             },
             description: 'рандомный трек в указанном жанре, например /genre rock',
         },
+        big_title: {
+            handler: (ctx) => fetchTrack(ctx, {onlyBigTitle: true}, getUserToken),
+            description: 'рандомный трек c длинным названием (рофлофункция - показать засилие бесконечной классики)',
+        },
         play: { handler: (ctx) => play(ctx) },
         playfrom: { handler: (ctx) => playFrom(ctx) },
         pause: { handler: (ctx) => pause(ctx) },
@@ -403,8 +407,9 @@ ${DESCRIPTION}
         const year = commandType === 'fresh' ? currentYear : null;
         const tag = commandType === 'ultra_fresh' ? 'new' : commandType === 'hipster' ? 'hipster' : null;
         const genre = commandType === 'genre' ? genreValue : null;
+        const onlyBigTitle = commandType === 'big_title';
 
-        await fetchTrack(ctx, { year, tag, genre }, getUserToken);
+        await fetchTrack(ctx, { year, tag, genre, onlyBigTitle }, getUserToken);
         if (isPlayFrom) {
             await playFrom(ctx, true, null, '1:00');
         } else {

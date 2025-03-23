@@ -123,12 +123,23 @@ function generateRandomSpotifyQuery(year, tag, genre) {
     return { q, offset };
 }
 
-async function getRandomTrack(ctx, year, tag, genre) {
+async function getRandomTrack(ctx, year, tag, genre, onlyBigTitle = false) {
     let spotifyData = null;
     let attempts = 0;
-    const maxAttempts = 5;
+    const maxAttempts = !onlyBigTitle ? 10 : 1000;
+    const antiClassic = !onlyBigTitle && !['classic', 'instrumental'].includes(genre)
 
-    while (!spotifyData?.img && attempts < maxAttempts) {
+    const lengthFilter = (length) => {
+        if (antiClassic) {
+            return length >= config.ANTI_CLASSIC_MAX_LENGTH_TITLE_FILTER
+        }
+        if (onlyBigTitle) {
+            return length <= config.ANTI_CLASSIC_MAX_LENGTH_TITLE_FILTER
+        }
+        return false;
+    }
+
+    while ((!spotifyData?.img || lengthFilter(spotifyData?.title?.length)) && (attempts < maxAttempts)) {
         const data = generateRandomSpotifyQuery(year, tag, genre);
         spotifyData = tag ? await findSongFromAlbumSpotify(data) : await findSongSpotify(data);
         saveUserRequest(ctx.from.id, `${ctx.from.username} - ${data.q} ${data.offset}: ${!!spotifyData}`);

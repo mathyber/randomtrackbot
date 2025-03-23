@@ -9,7 +9,8 @@ const config = {
     BOT_NICKNAME: 'musicorandom_bot',
     GLOBAL_LIMIT: 100,
     PREMIUM_LIMIT: 1000,
-    PORT: 3000
+    PORT: 3000,
+    ANTI_CLASSIC_MAX_LENGTH_TITLE_FILTER: 45
 };
 
 module.exports = config;
