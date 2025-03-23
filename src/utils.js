@@ -123,17 +123,17 @@ function generateRandomSpotifyQuery(year, tag, genre) {
     return { q, offset };
 }
 
-async function getRandomTrack(ctx, year, tag, genre, onlyBigTitle = false) {
+async function getRandomTrack(ctx, year, tag, genre, onlyLongTitle = false) {
     let spotifyData = null;
     let attempts = 0;
-    const maxAttempts = !onlyBigTitle ? 10 : 1000;
-    const antiClassic = !onlyBigTitle && !['classical', 'instrumental'].includes(genre)
+    const maxAttempts = !onlyLongTitle ? 10 : 1000;
+    const antiClassic = !onlyLongTitle && !['classical', 'instrumental'].includes(genre)
 
     const lengthFilter = (length) => {
         if (antiClassic) {
             return length >= config.ANTI_CLASSIC_MAX_LENGTH_TITLE_FILTER
         }
-        if (onlyBigTitle) {
+        if (onlyLongTitle) {
             return length <= config.ANTI_CLASSIC_MAX_LENGTH_TITLE_FILTER
         }
         return false;
