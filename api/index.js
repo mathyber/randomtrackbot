@@ -1,7 +1,7 @@
-const { startBot } = require('./src/bot');
+const { startBot } = require('../src/bot');
 const express = require('express');
 const axios = require('axios');
-const config = require('./config/config');
+const config = require('../config/config');
 
 const app = express();
 const PORT = config.PORT;
