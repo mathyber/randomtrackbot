@@ -14,7 +14,7 @@ const axios = require('axios');
 const pngLogo = path.join(__dirname, '../files/1.png');
 const currentYear = new Date().getFullYear();
 const DESCRIPTION = `Установленное ограничение на количество запросов в день: ${config.GLOBAL_LIMIT}`;
-const COMMANDS = [
+const COMMANDS_ALL = [
     { cmd: '/track', description: 'рандомный трек' },
     { cmd: '/fresh', description: `рандомный трек ${currentYear} года` },
     { cmd: '/ultra_fresh', description: 'рандомный трек за последние две недели' },
@@ -28,6 +28,15 @@ const COMMANDS = [
     { cmd: '/auth', description: 'авторизоваться в Spotify (нужен премиум Spotify)' },
     { cmd: '/like', description: 'добавить последний трек в любимые (нужен премиум Spotify)' },
 ];
+const COMMANDS = [
+    COMMANDS_ALL[0],
+    COMMANDS_ALL[1],
+    COMMANDS_ALL[2],
+    COMMANDS_ALL[3],
+    COMMANDS_ALL[4],
+    COMMANDS_ALL[6],
+    COMMANDS_ALL[7],
+]
 const ALL_COMMANDS_TEXT = COMMANDS.map(c => `${c.cmd} - ${c.description}`).join('\n');
 const lastRequestTime = new Map();
 
@@ -40,7 +49,7 @@ const allBtns = (ctx, txt, withImg) => {
             keyboard: [
                 [cmds[0], cmds[3]],
                 [cmds[1], cmds[2]],
-                [cmds[9], cmds[6]],
+                [cmds[6]],
             ],
             resize_keyboard: true
         },
