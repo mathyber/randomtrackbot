@@ -49,7 +49,7 @@ const allBtns = (ctx, txt, withImg) => {
             keyboard: [
                 [cmds[0], cmds[3]],
                 [cmds[1], cmds[2]],
-                [cmds[4]],
+                [cmds[4], cmds[6]],
             ],
             resize_keyboard: true
         },
