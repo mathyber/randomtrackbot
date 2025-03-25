@@ -16,6 +16,7 @@ app.get('/callback', async (req, res) => {
     const code = req.query.code;
     const state = Number(req.query.state);
 
+
     console.log(`Callback triggered with code: ${code}, state: ${state}`);
 
     try {
