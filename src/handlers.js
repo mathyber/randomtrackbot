@@ -338,7 +338,7 @@ ${DESCRIPTION}
             return ctx.reply('Ты уже авторизован', { parse_mode: 'HTML' });
         }
 
-        const authUrl = `https://accounts.spotify.com/authorize?client_id=${config.SPOTIFY_CLIENT_ID}&response_type=code&redirect_uri=http://localhost:${config.PORT}/callback&scope=user-read-playback-state+user-modify-playback-state+user-library-modify&state=${userId}`;
+        const authUrl = `https://accounts.spotify.com/authorize?client_id=${config.SPOTIFY_CLIENT_ID}&response_type=code&redirect_uri=https://randomtrackbot.onrender.com/callback&scope=user-read-playback-state+user-modify-playback-state+user-library-modify&state=${userId}`;
         return ctx.reply(
             'Авторизуйся в Spotify (нужен премиум):',
             {
