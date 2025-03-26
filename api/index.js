@@ -12,6 +12,7 @@ global.remoteSessions = remoteSessions;
 
 app.use(express.json());
 
+
 app.get('/callback', async (req, res) => {
     const code = req.query.code;
     const state = Number(req.query.state);
