@@ -22,7 +22,7 @@ app.get('/callback', async (req, res) => {
         const response = await axios.post('https://accounts.spotify.com/api/token', new URLSearchParams({
             grant_type: 'authorization_code',
             code,
-            redirect_uri: `https://randomtrackbot.onrender.com/callback`,
+            redirect_uri: `http://195.133.147.65/callback`,
             client_id: config.SPOTIFY_CLIENT_ID,
             client_secret: config.SPOTIFY_CLIENT_SECRET,
         }), {
