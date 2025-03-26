@@ -1,5 +1,6 @@
 const axios = require('axios');
 const config = require('../config/config');
+const {getOffset} = require("../src/utils");
 
 let accessToken = null;
 let tokenExpiration = 0;
@@ -90,7 +91,7 @@ async function findSongFromAlbumSpotify({ q, offset }) {
             });
             if (!albumResponse?.data?.albums?.items?.length) {
                 console.log(`No albums found (q=${q}, offset=${offset}), attempt ${attempts + 1}`);
-                offset = Math.floor(Math.random() * 1000); // Новый случайный offset
+                offset = getOffset();
                 attempts++;
             }
         }

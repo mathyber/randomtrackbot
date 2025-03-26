@@ -26,10 +26,14 @@ ${link ? `<a href="${link}">Spotify Link</a>\n` : ''}${youtubeUrl ? `<a href="${
     `.trim();
 };
 
+function getOffset() {
+    return Math.floor(Math.random() * 1000);
+}
+
 function generateRandomSpotifyQuery(year, tag, genre) {
     let alphabet, q = '';
-    // Случайный offset
-    const offset = Math.floor(Math.random() * 1001); // 0–1000   // Латиница (расширенная)
+
+    const offset = getOffset();
 
     if (tag) {
         q = `tag:${tag}`
@@ -152,4 +156,4 @@ async function getRandomTrack(ctx, year, tag, genre, onlyLongTitle = false) {
     return spotifyData;
 }
 
-module.exports = { getPostTrackResult, generateRandomSpotifyQuery, getRandomTrack };
+module.exports = { getOffset, getPostTrackResult, generateRandomSpotifyQuery, getRandomTrack };
