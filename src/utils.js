@@ -117,7 +117,7 @@ function generateRandomSpotifyQuery(year, tag, genre) {
     const devanagariChars = ['क', 'ख', 'ग', 'च', 'ज'];
 
     // Тип запроса
-    const queryType = Math.floor(Math.random() * 10);
+    const queryType = Math.floor(Math.random() * 5);
 
     // Взвешенный выбор письменности
     const rand = Math.random();
