@@ -157,7 +157,7 @@ function generateRandomSpotifyQuery(year, tag, genre) {
         q += ` tag:${getRandomElements(tags, 1)[0]}`;
     }
 
-    if (!tag && Math.random() < 0.4) {
+    if (!tag && Math.random() < 0.4 && !q.includes('tag:new')) {
         q += ` year:${getRandomWeightedYear()}`;
     }
 
