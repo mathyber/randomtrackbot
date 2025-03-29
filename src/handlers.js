@@ -159,7 +159,7 @@ const getTargetTrackId = async (ctx, isFromButton, trackId) => {
 function setupHandlers(bot, { getUserToken, removeUserToken }) {
     bot.start((ctx) => {
         const userId = Number(ctx.from.id);
-        saveUserRequest(userId, 'start');
+        saveUserRequest(userId, []);
         allBtns(ctx, `
 Привет! Это бот, который выдаст тебе ссылку Spotify на рандомный трек
             
