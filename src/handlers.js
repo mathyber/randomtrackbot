@@ -11,7 +11,6 @@ const config = require('../config/config');
 const { getPostTrackResult, getRandomTrack } = require("./utils");
 const path = require('path');
 const axios = require('axios');
-const {removeUserToken} = require("./bot");
 const pngLogo = path.join(__dirname, '../files/1.png');
 const currentYear = new Date().getFullYear();
 const DESCRIPTION = `Установленное ограничение на количество запросов в день: ${config.GLOBAL_LIMIT}`;
@@ -157,7 +156,7 @@ const getTargetTrackId = async (ctx, isFromButton, trackId) => {
     return targetTrackId;
 };
 
-function setupHandlers(bot, { getUserToken }) {
+function setupHandlers(bot, { getUserToken, removeUserToken }) {
     bot.start((ctx) => {
         const userId = Number(ctx.from.id);
         saveUserRequest(userId, 'start');

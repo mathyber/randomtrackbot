@@ -70,18 +70,17 @@ function startBot() {
             console.log(`Cleared ${updates.length} old updates`);
         }
 
-        setupHandlers(bot, { botStartTime, getUserToken, refreshToken, userLastTracks });
-
+        setupHandlers(bot, { botStartTime, getUserToken, refreshToken, userLastTracks, removeUserToken });
         bot.launch();
         console.log('Bot started at:', new Date(botStartTime * 1000).toISOString());
         console.log('Bot is running...');
     }).catch(err => {
         console.error('Error clearing updates:', err);
-        setupHandlers(bot, { botStartTime, getUserToken, refreshToken, userLastTracks });
+        setupHandlers(bot, { botStartTime, getUserToken, refreshToken, userLastTracks, removeUserToken });
         bot.launch();
         console.log('Bot started at:', new Date(botStartTime * 1000).toISOString());
         console.log('Bot is running...');
     });
 }
 
-module.exports = { startBot, removeUserToken };
+module.exports = { startBot };
