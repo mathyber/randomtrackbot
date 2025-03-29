@@ -98,11 +98,6 @@ function getRandomWeightedYear() {
 function generateRandomSpotifyQuery(year, tag, genre) {
     let alphabet, q = '';
 
-    if (tag) {
-        q = `tag:${tag}`;
-        return { q, offset: getRandomOffset() };
-    }
-
     const latinVowels = ['a', 'e', 'i', 'o', 'u', 'á', 'é', 'í', 'ó', 'ú', 'ä', 'ö', 'ü', 'å', 'æ', 'ø'];
     const latinConsonants = ['b', 'c', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'm', 'n', 'p', 'r', 's', 't', 'v', 'w', 'y', 'ñ', 'ç', 'ß', 'ğ', 'ş'];
     const cyrillicVowels = ['а', 'е', 'ё', 'и', 'о', 'у', 'ы', 'э', 'ю', 'я', 'є', 'і', 'ї', 'ө', 'ү'];
@@ -114,7 +109,7 @@ function generateRandomSpotifyQuery(year, tag, genre) {
     const arabicChars = ['ا', 'ب', 'ت', 'د', 'ر'];
     const devanagariChars = ['क', 'ख', 'ग', 'च', 'ज'];
 
-    const maxLength = (tag || genre) ? 3 : 5;
+    const maxLength = tag ? 2 : (genre ? 3 : 5);
 
     // Тип запроса
     const queryType = Math.floor(Math.random() * maxLength);
@@ -166,6 +161,10 @@ function generateRandomSpotifyQuery(year, tag, genre) {
         if (!tag && Math.random() < 0.4 && !q.includes('tag:new')) {
             q += ` year:${getRandomWeightedYear()}`;
         }
+    }
+
+    if (tag) {
+        q = ` tag:${tag}`;
     }
 
     if (year) {
