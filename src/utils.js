@@ -13,7 +13,6 @@ const getPostTrackResult = (res, youtubeUrl, limit) => {
     const link = res?.link;
     const releaseDate = res?.release_date && !['0000'].includes(res.release_date) && res.release_date.length > 4 ? formatDate(res.release_date) : (res.release_date || '');
     const botNickname = config.BOT_NICKNAME;
-    console.log(res.logData);
 
     return `
 <b>${title}</b>
@@ -23,6 +22,13 @@ ${releaseDate}
 ${link ? `<a href="${link}">Spotify Link</a>\n` : ''}${youtubeUrl ? `<a href="${youtubeUrl}">YouTube Link</a>` : ''}
 
 Осталось запросов сегодня: ${limit || 0}
+
+<i>Запросы: </i>
+${res.logData?.map(({data, attempts}) => {
+        const isLast = attempts === res.logData.length;
+        return `q: ${data.q}, offset: ${data.offset}, ${isLast ? 'неудачный поиск' : 'найден трек'}`
+    })}
+
 @${botNickname}
     `.trim();
 };
