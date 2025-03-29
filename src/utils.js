@@ -22,16 +22,18 @@ ${releaseDate}
 ${link ? `<a href="${link}">Spotify Link</a>\n` : ''}${youtubeUrl ? `<a href="${youtubeUrl}">YouTube Link</a>` : ''}
 
 Осталось запросов сегодня: ${limit || 0}
-
-<i>Запросы: </i>
-${res.logData?.map(({data, attempts}) => {
-        const isLast = attempts === res.logData.length;
-        return `q: ${data.q}, offset: ${data.offset}, ${!isLast ? 'неудачный поиск' : 'найден трек'}`
-    }).join('\n')}
-
 @${botNickname}
     `.trim();
 };
+
+
+function getLastRequestsText (res) {
+  return `<i>Запросы для последнего поиска: </i>
+${res?.map(({data, attempts}) => {
+      const isLast = attempts === res.length;
+      return `q: ${data.q}, offset: ${data.offset}, ${!isLast ? 'неудачный поиск' : 'найден трек'}`
+  }).join('\n')}`
+}
 
 function getOffset() {
     return Math.floor(Math.random() * 1000);
@@ -215,4 +217,4 @@ async function getRandomTrack(ctx, year, tag, genre, onlyLongTitle = false) {
     return spotifyData;
 }
 
-module.exports = { getOffset, getPostTrackResult, generateRandomSpotifyQuery, getRandomTrack };
+module.exports = { getOffset, getPostTrackResult, generateRandomSpotifyQuery, getRandomTrack, getLastRequestsText };

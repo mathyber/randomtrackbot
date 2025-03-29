@@ -5,10 +5,15 @@ const {
     incrementUserRequest,
     isPremium,
     premiumUntil,
-    activatePremium
+    activatePremium,
+    getLastUserRequests
 } = require('../storage/jsonStorage');
 const config = require('../config/config');
-const { getPostTrackResult, getRandomTrack } = require("./utils");
+const {
+    getPostTrackResult,
+    getRandomTrack,
+    getLastRequestsText
+} = require("./utils");
 const path = require('path');
 const axios = require('axios');
 const pngLogo = path.join(__dirname, '../files/1.png');
@@ -27,7 +32,8 @@ const COMMANDS_ALL = [
     { cmd: '/pause', description: 'поставить текущий трек на паузу (нужен премиум Spotify)' },
     { cmd: '/auth', description: 'авторизоваться в Spotify (нужен премиум Spotify)' },
     { cmd: '/like', description: 'добавить последний трек в любимые (нужен премиум Spotify)' },
-    { cmd: '/logout', description: 'выйти из аккаунта Spotify' }
+    { cmd: '/logout', description: 'выйти из аккаунта Spotify' },
+    { cmd: '/last_requests', description: 'выйти из аккаунта Spotify' },
 ];
 const COMMANDS = [
     COMMANDS_ALL[0],
@@ -367,6 +373,13 @@ ${DESCRIPTION}
         }
     }
 
+    const lastRequests = (ctx) => {
+        const userId = Number(ctx.from.id);
+        const lastRequestData = getLastUserRequests(userId);
+
+        return ctx.reply(getLastRequestsText(lastRequestData), { parse_mode: 'HTML' });
+    }
+
     const commands = {
         track: {
             handler: (ctx) => fetchTrack(ctx, {}, getUserToken),
@@ -401,10 +414,8 @@ ${DESCRIPTION}
         pause: { handler: (ctx) => pause(ctx) },
         like: { handler: (ctx) => like(ctx) },
         auth: { handler: auth },
-        logout: { // Добавляем
-            handler: logout,
-            description: 'выйти из аккаунта Spotify',
-        },
+        logout: { handler: logout },
+        last_requests: { handler: lastRequests },
     };
 
     Object.entries(commands).forEach(([cmd, { handler }]) => {
