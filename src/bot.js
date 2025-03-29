@@ -51,15 +51,11 @@ async function getUserToken(userId) {
 }
 
 function removeUserToken(userId) {
-    const tokens = global.userTokens.get(userId);
-    console.log(tokens)
-    // if (!tokens) {
-    //     return null;
-    // }
-    // if (Date.now() > tokens.expires_at) {
-    //     return await refreshToken(userId);
-    // }
-    // return tokens.access_token;
+    if (global.userTokens.has(userId)) {
+        global.userTokens.delete(userId);
+        return true;
+    }
+    return false;
 }
 
 function startBot() {
