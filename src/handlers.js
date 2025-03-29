@@ -347,7 +347,7 @@ function setupHandlers(bot, { getUserToken, removeUserToken }) {
     }
 
     const info = (ctx) => {
-        return ctx.reply(getInfo(), { parse_mode: 'HTML' });
+        return ctx.replyWithPhoto({ source: pngLogo }, { caption: getInfo(), parse_mode: 'HTML', })
     }
 
     const commands = {
