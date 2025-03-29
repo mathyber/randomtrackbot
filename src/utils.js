@@ -159,8 +159,8 @@ function generateRandomSpotifyQuery(year, tag, genre) {
     const tags = ['hipster', 'new'];
 
     if (q.length <= 3) {
-        if (!tag && Math.random() < 0.2) {
-            q += ` tag:${getRandomElements(tags, 1)[0]}`;
+        if (!tag && Math.random() < 0.3) {
+            q += ` tag:${(Math.random() < 0.8) ? tags[0] : tags[1]}`;
         }
 
         if (!tag && Math.random() < 0.4 && !q.includes('tag:new')) {
