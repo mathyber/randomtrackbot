@@ -310,7 +310,7 @@ async function getRandomTrack(ctx, year, tag, genre, onlyLongTitle = false) {
         }
     }
 
-    saveUserRequest(ctx.from.id, spotifyData.logData);
+    saveUserRequest(ctx.from.id, spotifyData?.logData);
 
     if (!spotifyData?.img) {
         console.log(`Failed to find track with image after ${maxAttempts} attempts`);
