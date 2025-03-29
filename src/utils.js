@@ -153,12 +153,14 @@ function generateRandomSpotifyQuery(year, tag, genre) {
 
     const tags = ['hipster', 'new'];
 
-    if (!tag && Math.random() < 0.2) {
-        q += ` tag:${getRandomElements(tags, 1)[0]}`;
-    }
+    if (q.length <= 3) {
+        if (!tag && Math.random() < 0.2) {
+            q += ` tag:${getRandomElements(tags, 1)[0]}`;
+        }
 
-    if (!tag && Math.random() < 0.4 && !q.includes('tag:new')) {
-        q += ` year:${getRandomWeightedYear()}`;
+        if (!tag && Math.random() < 0.4 && !q.includes('tag:new')) {
+            q += ` year:${getRandomWeightedYear()}`;
+        }
     }
 
     if (year) {
