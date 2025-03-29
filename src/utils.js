@@ -129,12 +129,31 @@ function generateRandomSpotifyQuery(year, tag, genre) {
         }
     }
 
+    const tags = ['hipster', 'new'];
+    const genres = [
+        "edm", "bigroom", "house", "deep+house", "progressive+house", "electro+house",
+        "trance", "uplifting+trance", "techno", "melodic+techno", "drum+and+bass",
+        "dubstep", "future+garage", "phonk", "synthwave", "retrowave", "lofi",
+        "chillout", "ambient", "hardstyle", "trap", "hip+hop", "rap",
+        "rnb", "funk", "disco", "pop", "indie+pop", "alternative+rock",
+        "hard+rock", "metalcore", "punk+rock", "grunge", "post+rock",
+        "jazz", "blues", "classical", "orchestral", "soundtrack", "cinematic"
+    ];
+
+    if (!tag && Math.random() < 0.1) {
+        q += ` tag:${getRandomElements(tags, 1)}`;
+    }
+
+    if (!genre && Math.random() < 0.1) {
+        q += ` genre:${getRandomElements(genres, 1)}`;
+    }
+
     if (year) {
-        q = `${q} year:${year}`
+        q += ` year:${year}`
     }
 
     if (genre) {
-        q = `${q} genre:${genre}`
+        q += ` genre:${genre}`
     }
 
     return { q, offset };
