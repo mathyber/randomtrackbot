@@ -145,8 +145,7 @@ function generateRandomSpotifyQuery(year, tag, genre) {
         } else {
             // Для других языков три случайных символа
             const chars = alphabet === 'chinese' ? chineseChars : alphabet === 'japanese' ? japaneseChars : alphabet === 'korean' ? koreanChars : alphabet === 'arabic' ? arabicChars : devanagariChars;
-            const getChars = () => chars[Math.floor(Math.random() * chars.length)];
-            q = Array(length).fill(getChars()).join('');
+            q = Array.from({ length }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
         }
     }
 
