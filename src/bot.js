@@ -50,7 +50,7 @@ async function getUserToken(userId) {
     return tokens.access_token;
 }
 
-async function removeUserToken(userId) {
+function removeUserToken(userId) {
     const tokens = global.userTokens.get(userId);
     console.log(tokens)
     // if (!tokens) {
