@@ -1,6 +1,7 @@
 const config = require("../config/config");
 const { saveUserRequest } = require("../storage/jsonStorage");
 const { findSongSpotify, findSongFromAlbumSpotify } = require("../services/spotifyService");
+const {ALL_COMMANDS_TEXT, DESCRIPTION} = require("../const/const");
 
 function formatDate(dateString) {
     const [year, month, day] = dateString.split("-").map(Number);
@@ -26,6 +27,19 @@ ${link ? `<a href="${link}">Spotify Link</a>\n` : ''}${youtubeUrl ? `<a href="${
     `.trim();
 };
 
+
+function getInfo() {
+    return `
+Привет! Это бот, который выдаст тебе ссылку Spotify на рандомный трек. Иногда возникает ситуация, когда рекомендации музыкальных сервисов, обученные на слушаемом тобой, выдают уже просто одинаковую музыку, от которой устаешь. А где искать новое - не знаешь. Данный бот создан с целью помочь выйти из музыкального пузыря и зоны комфорта - послушать что-то рандомное без привязки к вашим рекомендациям, плейлистам и чему-либо ещё.
+            
+${ALL_COMMANDS_TEXT}
+
+${DESCRIPTION}
+
+Бота создал <a href="https://t.me/laritov">Laritovski</a> по приколу и от нечего делать. 
+По вопросам, касаемым бота, можно написать в комментариях канала
+        `
+}
 
 function getLastRequestsText (res) {
   return `<i>Запросы для последнего поиска: </i>
@@ -221,4 +235,4 @@ async function getRandomTrack(ctx, year, tag, genre, onlyLongTitle = false) {
     return spotifyData;
 }
 
-module.exports = { getOffset, getPostTrackResult, generateRandomSpotifyQuery, getRandomTrack, getLastRequestsText };
+module.exports = { getOffset, getPostTrackResult, generateRandomSpotifyQuery, getRandomTrack, getLastRequestsText, getInfo };

@@ -12,39 +12,13 @@ const config = require('../config/config');
 const {
     getPostTrackResult,
     getRandomTrack,
-    getLastRequestsText
+    getLastRequestsText,
+    getInfo
 } = require("./utils");
 const path = require('path');
 const axios = require('axios');
+const {COMMANDS, ALL_COMMANDS_TEXT, DESCRIPTION, currentYear} = require("../const/const");
 const pngLogo = path.join(__dirname, '../files/1.png');
-const currentYear = new Date().getFullYear();
-const DESCRIPTION = `Установленное ограничение на количество запросов в день: ${config.GLOBAL_LIMIT}`;
-const COMMANDS_ALL = [
-    { cmd: '/track', description: 'рандомный трек' },
-    { cmd: '/fresh', description: `рандомный трек ${currentYear} года` },
-    { cmd: '/ultra_fresh', description: 'рандомный трек за последние две недели' },
-    { cmd: '/hipster', description: 'рандомный трек с низкой популярностью' },
-    { cmd: '/genre', description: 'рандомный трек в указанном жанре, например /genre rock' },
-    { cmd: '/play', description: 'запустить последний трек на активном устройстве (нужен премиум Spotify)' },
-    { cmd: '/help', description: 'все команды' },
-    { cmd: '/long_title', description: 'рандомный трек c длинным названием (рофлофункция)' },
-    { cmd: '/playfrom', description: 'запустить последний трек с указанной минуты, например /playfrom 1:00 (нужен премиум Spotify)' },
-    { cmd: '/pause', description: 'поставить текущий трек на паузу (нужен премиум Spotify)' },
-    { cmd: '/auth', description: 'авторизоваться в Spotify (нужен премиум Spotify)' },
-    { cmd: '/like', description: 'добавить последний трек в любимые (нужен премиум Spotify)' },
-    { cmd: '/logout', description: 'выйти из аккаунта Spotify' },
-    { cmd: '/last_requests', description: 'выйти из аккаунта Spotify' },
-];
-const COMMANDS = [
-    COMMANDS_ALL[0],
-    COMMANDS_ALL[1],
-    COMMANDS_ALL[2],
-    COMMANDS_ALL[3],
-    COMMANDS_ALL[4],
-    COMMANDS_ALL[6],
-    COMMANDS_ALL[7],
-]
-const ALL_COMMANDS_TEXT = COMMANDS.map(c => `${c.cmd} - ${c.description}`).join('\n');
 const lastRequestTime = new Map();
 
 const allBtns = (ctx, txt, withImg) => {
@@ -166,15 +140,7 @@ function setupHandlers(bot, { getUserToken, removeUserToken }) {
     bot.start((ctx) => {
         const userId = Number(ctx.from.id);
         saveUserRequest(userId, []);
-        allBtns(ctx, `
-Привет! Это бот, который выдаст тебе ссылку Spotify на рандомный трек
-            
-${ALL_COMMANDS_TEXT}
-
-${DESCRIPTION}
-
-Бота создал <a href="https://t.me/laritov">Laritovski</a> по приколу и от нечего делать
-        `, true);
+        allBtns(ctx, getInfo(), true);
     });
 
     const playSong = async (isPlayFrom = false, ctx, isFromButton = false, trackId = null, time) => {
@@ -380,6 +346,10 @@ ${DESCRIPTION}
         return ctx.reply(getLastRequestsText(lastRequestData), { parse_mode: 'HTML' });
     }
 
+    const info = (ctx) => {
+        return ctx.reply(getInfo(), { parse_mode: 'HTML' });
+    }
+
     const commands = {
         track: {
             handler: (ctx) => fetchTrack(ctx, {}, getUserToken),
@@ -416,6 +386,7 @@ ${DESCRIPTION}
         auth: { handler: auth },
         logout: { handler: logout },
         last_requests: { handler: lastRequests },
+        info: { handler: info },
     };
 
     Object.entries(commands).forEach(([cmd, { handler }]) => {
