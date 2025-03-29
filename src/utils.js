@@ -114,8 +114,10 @@ function generateRandomSpotifyQuery(year, tag, genre) {
     const arabicChars = ['ا', 'ب', 'ت', 'د', 'ر'];
     const devanagariChars = ['क', 'ख', 'ग', 'च', 'ज'];
 
+    const maxLength = (tag || genre) ? 3 : 5;
+
     // Тип запроса
-    const queryType = Math.floor(Math.random() * 5);
+    const queryType = Math.floor(Math.random() * maxLength);
 
     // Взвешенный выбор письменности
     const rand = Math.random();
@@ -156,7 +158,7 @@ function generateRandomSpotifyQuery(year, tag, genre) {
 
     const tags = ['hipster', 'new'];
 
-    if (q.length <= 3 && !genre) {
+    if (q.length <= 3) {
         if (!tag && Math.random() < 0.3) {
             q += ` tag:${(Math.random() < 0.8) ? tags[0] : tags[1]}`;
         }
