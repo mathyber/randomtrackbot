@@ -193,7 +193,6 @@ async function getRandomTrack(ctx, year, tag, genre, onlyLongTitle = false) {
     while ((!spotifyData?.img || lengthFilter(spotifyData?.title?.length)) && (attempts < maxAttempts)) {
         const data = generateRandomSpotifyQuery(year, tag, genre);
         spotifyData = tag ? await findSongFromAlbumSpotify(data) : await findSongSpotify(data);
-        saveUserRequest(ctx.from.id, `${ctx.from.username} - ${data.q} ${data.offset}: ${!!spotifyData}`);
         attempts++;
 
         const logHistory = {
@@ -206,6 +205,8 @@ async function getRandomTrack(ctx, year, tag, genre, onlyLongTitle = false) {
             spotifyData.logData = historyQ
         }
     }
+
+    saveUserRequest(ctx.from.id, spotifyData);
 
     if (!spotifyData?.img) {
         console.log(`Failed to find track with image after ${maxAttempts} attempts`);

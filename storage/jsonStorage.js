@@ -16,12 +16,30 @@ if (fs.existsSync(userLimitsFile)) {
     userLimits = JSON.parse(fs.readFileSync(userLimitsFile, 'utf8'));
 }
 
-function saveUserRequest(userId, request) {
+function saveUserRequest(userId, requests) {
+    if (!Array.isArray(requests)) {
+        throw new Error('requests must be an array'); // Проверка на массив
+    }
+
     if (!userRequests[userId]) {
         userRequests[userId] = [];
     }
-    userRequests[userId].push({ request, timestamp: new Date().toISOString() });
+
+    // Добавляем массив объектов с текущим timestamp
+    const timestamp = new Date().toISOString();
+    const requestArray = requests.map(req => ({ ...req, time: timestamp }));
+    userRequests[userId].push(requestArray);
+
     fs.writeFileSync(userRequestsFile, JSON.stringify(userRequests, null, 2));
+}
+
+// Вытаскиваем последний массив запросов для юзера
+function getLastUserRequests(userId) {
+    if (!userRequests[userId] || userRequests[userId].length === 0) {
+        return null; // Если нет запросов — null
+    }
+
+    return userRequests[userId][userRequests[userId].length - 1];
 }
 
 // Активируем премиум на 30 дней
@@ -95,7 +113,15 @@ function incrementUserRequest(userId) {
 }
 
 function premiumUntil(userId) {
-    return new Date(userLimits[userId]?.premiumUntil)?.toLocaleDateString()
+    return new Date(userLimits[userId]?.premiumUntil)?.toLocaleDateString();
 }
 
-module.exports = { saveUserRequest, checkUserLimit, incrementUserRequest, activatePremium, premiumUntil, isPremium };
+module.exports = {
+    saveUserRequest,
+    checkUserLimit,
+    incrementUserRequest,
+    activatePremium,
+    premiumUntil,
+    isPremium,
+    getLastUserRequests
+};
