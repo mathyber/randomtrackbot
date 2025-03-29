@@ -13,6 +13,7 @@ const getPostTrackResult = (res, youtubeUrl, limit) => {
     const link = res?.link;
     const releaseDate = res?.release_date && !['0000'].includes(res.release_date) && res.release_date.length > 4 ? formatDate(res.release_date) : (res.release_date || '');
     const botNickname = config.BOT_NICKNAME;
+    console.log(res.logData);
 
     return `
 <b>${title}</b>
@@ -155,18 +156,29 @@ async function getRandomTrack(ctx, year, tag, genre, onlyLongTitle = false) {
         return false;
     }
 
+    const historyQ = [];
+
     while ((!spotifyData?.img || lengthFilter(spotifyData?.title?.length)) && (attempts < maxAttempts)) {
         const data = generateRandomSpotifyQuery(year, tag, genre);
         spotifyData = tag ? await findSongFromAlbumSpotify(data) : await findSongSpotify(data);
         saveUserRequest(ctx.from.id, `${ctx.from.username} - ${data.q} ${data.offset}: ${!!spotifyData}`);
         attempts++;
-    }
 
-    console.log("дохуя чота: ", attempts)
+        const logHistory = {
+            data,
+            attempts
+        }
+        historyQ.push(logHistory)
+
+        if (spotifyData?.img) {
+            spotifyData.logData = historyQ
+        }
+    }
 
     if (!spotifyData?.img) {
         console.log(`Failed to find track with image after ${maxAttempts} attempts`);
     }
+
     return spotifyData;
 }
 
