@@ -26,7 +26,7 @@ const COMMANDS = [
     COMMANDS_ALL[4],
     COMMANDS_ALL[6],
     COMMANDS_ALL[7],
-    COMMANDS_ALL[16],
+    COMMANDS_ALL[14],
 ]
 const ALL_COMMANDS_TEXT = COMMANDS.map(c => `${c.cmd} - ${c.description}`).join('\n');
 
