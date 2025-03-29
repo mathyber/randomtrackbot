@@ -58,7 +58,7 @@ function generateRandomSpotifyQuery(year, tag, genre) {
     const offset = getOffset();
 
     if (tag) {
-        q = `tag:${tag}`
+        q = `tag:${tag}`;
         return { q, offset };
     }
 
@@ -82,7 +82,6 @@ function generateRandomSpotifyQuery(year, tag, genre) {
 
     // Тип запроса: 0 - цифра, 1 - 1 символ, 2 - 2 символа, 3 - 3 символа
     const queryType = Math.floor(Math.random() * 4);
-
 
     // Взвешенный выбор письменности
     const rand = Math.random();
@@ -140,12 +139,12 @@ function generateRandomSpotifyQuery(year, tag, genre) {
         "jazz", "blues", "classical", "orchestral", "soundtrack", "cinematic"
     ];
 
-    if (!tag && Math.random() < 0.1) {
-        q += ` tag:${getRandomElements(tags, 1)}`;
+    if (!tag && Math.random() < 0.2) {
+        q += ` tag:${getRandomElements(tags, 1)[0]}`;
     }
 
-    if (!genre && Math.random() < 0.1) {
-        q += ` genre:${getRandomElements(genres, 1)}`;
+    if (!genre && Math.random() < 0.2) {
+        q += ` genre:${getRandomElements(genres, 1)[0]}`;
     }
 
     if (year) {
