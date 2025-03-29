@@ -50,6 +50,18 @@ async function getUserToken(userId) {
     return tokens.access_token;
 }
 
+async function removeUserToken(userId) {
+    const tokens = global.userTokens.get(userId);
+    console.log(tokens)
+    // if (!tokens) {
+    //     return null;
+    // }
+    // if (Date.now() > tokens.expires_at) {
+    //     return await refreshToken(userId);
+    // }
+    // return tokens.access_token;
+}
+
 function startBot() {
     bot.telegram.getUpdates(-1).then(updates => {
         if (updates.length > 0) {
@@ -72,4 +84,4 @@ function startBot() {
     });
 }
 
-module.exports = { startBot };
+module.exports = { startBot, removeUserToken };

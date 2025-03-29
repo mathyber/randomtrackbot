@@ -11,6 +11,7 @@ const config = require('../config/config');
 const { getPostTrackResult, getRandomTrack } = require("./utils");
 const path = require('path');
 const axios = require('axios');
+const {removeUserToken} = require("./bot");
 const pngLogo = path.join(__dirname, '../files/1.png');
 const currentYear = new Date().getFullYear();
 const DESCRIPTION = `Установленное ограничение на количество запросов в день: ${config.GLOBAL_LIMIT}`;
@@ -27,6 +28,7 @@ const COMMANDS_ALL = [
     { cmd: '/pause', description: 'поставить текущий трек на паузу (нужен премиум Spotify)' },
     { cmd: '/auth', description: 'авторизоваться в Spotify (нужен премиум Spotify)' },
     { cmd: '/like', description: 'добавить последний трек в любимые (нужен премиум Spotify)' },
+    { cmd: '/logout', description: 'выйти из аккаунта Spotify' }
 ];
 const COMMANDS = [
     COMMANDS_ALL[0],
@@ -49,7 +51,7 @@ const allBtns = (ctx, txt, withImg) => {
             keyboard: [
                 [cmds[0], cmds[3]],
                 [cmds[1], cmds[2]],
-                [cmds[4], cmds[6]],
+                [cmds[4], cmds[5]],
             ],
             resize_keyboard: true
         },
@@ -350,6 +352,22 @@ ${DESCRIPTION}
         );
     };
 
+    const logout = async (ctx) => {
+        const userId = Number(ctx.from.id);
+        const token = await getUserToken(userId);
+
+        if (!token) {
+            return ctx.reply('Ты и так не авторизован в Spotify.', { parse_mode: 'HTML' });
+        }
+
+        const removed = removeUserToken(userId);
+        if (removed) {
+            return ctx.reply('Ты успешно вышел из аккаунта Spotify!', { parse_mode: 'HTML' });
+        } else {
+            return ctx.reply('Что-то пошло не так при выходе. Попробуй снова.', { parse_mode: 'HTML' });
+        }
+    }
+
     const commands = {
         track: {
             handler: (ctx) => fetchTrack(ctx, {}, getUserToken),
@@ -384,6 +402,10 @@ ${DESCRIPTION}
         pause: { handler: (ctx) => pause(ctx) },
         like: { handler: (ctx) => like(ctx) },
         auth: { handler: auth },
+        logout: { // Добавляем
+            handler: logout,
+            description: 'выйти из аккаунта Spotify',
+        },
     };
 
     Object.entries(commands).forEach(([cmd, { handler }]) => {
