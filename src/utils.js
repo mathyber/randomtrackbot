@@ -129,12 +129,6 @@ function generateRandomSpotifyQuery(year, tag, genre) {
         }
     }
 
-    // Рандомный фильтр популярности (40% шанс)
-    if (Math.random() < 0.4) {
-        const popularity = Math.floor(Math.random() * 100); // 0-100
-        q += ` popularity:${popularity}-${popularity + 20}`; // Диапазон 20
-    }
-
     if (year) {
         q = `${q} year:${year}`
     }
