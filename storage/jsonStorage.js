@@ -17,20 +17,24 @@ if (fs.existsSync(userLimitsFile)) {
 }
 
 function saveUserRequest(userId, requests) {
-    if (!Array.isArray(requests)) {
-        throw new Error('requests must be an array'); // Проверка на массив
+    try {
+        if (!Array.isArray(requests)) {
+            throw new Error('requests must be an array'); // Проверка на массив
+        }
+
+        if (!userRequests[userId]) {
+            userRequests[userId] = [];
+        }
+
+        // Добавляем массив объектов с текущим timestamp
+        const timestamp = new Date().toISOString();
+        const requestArray = requests.map(req => ({ ...req, time: timestamp }));
+        userRequests[userId].push(requestArray);
+
+        fs.writeFileSync(userRequestsFile, JSON.stringify(userRequests, null, 2));
+    } catch (e) {
+        console.error(e);
     }
-
-    if (!userRequests[userId]) {
-        userRequests[userId] = [];
-    }
-
-    // Добавляем массив объектов с текущим timestamp
-    const timestamp = new Date().toISOString();
-    const requestArray = requests.map(req => ({ ...req, time: timestamp }));
-    userRequests[userId].push(requestArray);
-
-    fs.writeFileSync(userRequestsFile, JSON.stringify(userRequests, null, 2));
 }
 
 // Вытаскиваем последний массив запросов для юзера
