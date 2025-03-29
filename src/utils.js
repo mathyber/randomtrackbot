@@ -26,8 +26,8 @@ ${link ? `<a href="${link}">Spotify Link</a>\n` : ''}${youtubeUrl ? `<a href="${
 <i>Запросы: </i>
 ${res.logData?.map(({data, attempts}) => {
         const isLast = attempts === res.logData.length;
-        return `q: ${data.q}, offset: ${data.offset}, ${!isLast ? 'неудачный поиск' : 'найден трек'}\n`
-    })}
+        return `q: ${data.q}, offset: ${data.offset}, ${!isLast ? 'неудачный поиск' : 'найден трек'}`
+    }).join('\n')}
 
 @${botNickname}
     `.trim();
