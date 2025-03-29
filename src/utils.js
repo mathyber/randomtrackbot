@@ -44,7 +44,7 @@ function _getOffset() {
 function getOffset(queryLength) {
     const offsetConfig = {
         lengthThreshold: 4,      // Порог длины строки (от 4 символов)
-        lowRangeChance: 0.8,     // 80% шанс на 0-20 для длинных строк
+        lowRangeChance: 0.9,     // 90% шанс на 0-20 для длинных строк
         lowRangeMax: 20,         // Максимум для "низкого" диапазона
         highRangeMax: 1000       // Максимум для "высокого" диапазона
     };
@@ -79,7 +79,8 @@ function getRandomWeightedYear() {
     const totalYears = currentYear - startYear + 1;
 
     // Генерируем веса, чем новее год, тем выше вероятность
-    let weights = Array.from({ length: totalYears }, (_, i) => Math.pow(i + 1, 2));
+    let weights = Array.from({ length: totalYears }, (_, i) => Math.pow(i + 1.5, 2));
+    weights[0] *= 0.05;
     let sumWeights = weights.reduce((acc, w) => acc + w, 0);
 
     // Генерация случайного числа в диапазоне суммарных весов
