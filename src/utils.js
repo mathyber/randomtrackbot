@@ -35,8 +35,25 @@ ${res?.map(({data, attempts}) => {
   }).join('\n')}`
 }
 
-function getOffset() {
+function _getOffset() {
     return Math.floor(Math.random() * 1000);
+}
+
+function getOffset(queryLength) {
+    const offsetConfig = {
+        lengthThreshold: 4,      // Порог длины строки (от 4 символов)
+        lowRangeChance: 0.8,     // 80% шанс на 0-20 для длинных строк
+        lowRangeMax: 20,         // Максимум для "низкого" диапазона
+        highRangeMax: 1000       // Максимум для "высокого" диапазона
+    };
+
+    if (queryLength >= offsetConfig.lengthThreshold) {
+        if (Math.random() < offsetConfig.lowRangeChance) {
+            return Math.floor(Math.random() * (offsetConfig.lowRangeMax + 1));
+        }
+    }
+
+    return Math.floor(Math.random() * offsetConfig.highRangeMax);
 }
 
 function getRandomElements(arr, count) {
@@ -78,6 +95,81 @@ function getRandomWeightedYear() {
 }
 
 function generateRandomSpotifyQuery(year, tag, genre) {
+    let alphabet, q = '';
+
+    const latinVowels = ['a', 'e', 'i', 'o', 'u', 'á', 'é', 'í', 'ó', 'ú', 'ä', 'ö', 'ü', 'å', 'æ', 'ø'];
+    const latinConsonants = ['b', 'c', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'm', 'n', 'p', 'r', 's', 't', 'v', 'w', 'y', 'ñ', 'ç', 'ß', 'ğ', 'ş'];
+    const cyrillicVowels = ['а', 'е', 'ё', 'и', 'о', 'у', 'ы', 'э', 'ю', 'я', 'є', 'і', 'ї', 'ө', 'ү'];
+    const cyrillicConsonants = ['б', 'в', 'г', 'д', 'ж', 'з', 'к', 'л', 'м', 'н', 'п', 'р', 'с', 'т', 'ф', 'х', 'ц', 'ч', 'ш', 'щ', 'ґ', 'ў', 'ј', 'љ', 'њ', 'ћ', 'џ', 'ғ', 'қ', 'ң'];
+    const digits = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+    const chineseChars = ['爱', '我', '你', '好', '天'];
+    const japaneseChars = ['あ', 'い', 'う', 'ア', 'イ', 'ウ', '日', '本'];
+    const koreanChars = ['가', '나', '다', '마', '바'];
+    const arabicChars = ['ا', 'ب', 'ت', 'د', 'ر'];
+    const devanagariChars = ['क', 'ख', 'ग', 'च', 'ज'];
+
+    // Тип запроса
+    const queryType = Math.floor(Math.random() * 5);
+
+    // Взвешенный выбор письменности
+    const rand = Math.random();
+    if (rand < 0.7) alphabet = 'latin';
+    else if (rand < 0.85) alphabet = 'cyrillic';
+    else if (rand < 0.90) alphabet = 'chinese';
+    else if (rand < 0.95) alphabet = 'japanese';
+    else if (rand < 0.975) alphabet = 'korean';
+    else if (rand < 0.99) alphabet = 'arabic';
+    else alphabet = 'devanagari';
+
+    // Генерация q
+    if (queryType === 0) {
+        q = digits[Math.floor(Math.random() * digits.length)];
+    } else if (queryType === 1) {
+        if (alphabet === 'latin') q = [...latinConsonants, ...latinVowels][Math.floor(Math.random() * (latinConsonants.length + latinVowels.length))];
+        else if (alphabet === 'cyrillic') q = [...cyrillicConsonants, ...cyrillicVowels][Math.floor(Math.random() * (cyrillicConsonants.length + cyrillicVowels.length))];
+        else if (alphabet === 'chinese') q = chineseChars[Math.floor(Math.random() * chineseChars.length)];
+        else if (alphabet === 'japanese') q = japaneseChars[Math.floor(Math.random() * japaneseChars.length)];
+        else if (alphabet === 'korean') q = koreanChars[Math.floor(Math.random() * koreanChars.length)];
+        else if (alphabet === 'arabic') q = arabicChars[Math.floor(Math.random() * arabicChars.length)];
+        else q = devanagariChars[Math.floor(Math.random() * devanagariChars.length)];
+    } else {
+        const length = queryType;
+        const randomNum = Math.floor(Math.random() * (length - 1)) + 1;
+        if (alphabet === 'latin') {
+            q = mergeRandomStrings(latinConsonants, randomNum, latinVowels, length-randomNum);
+        } else if (alphabet === 'cyrillic') {
+            q = mergeRandomStrings(cyrillicConsonants, randomNum, cyrillicVowels, length-randomNum);
+        } else {
+            // Для других языков три случайных символа
+            const chars = alphabet === 'chinese' ? chineseChars : alphabet === 'japanese' ? japaneseChars : alphabet === 'korean' ? koreanChars : alphabet === 'arabic' ? arabicChars : devanagariChars;
+            q = Array(length).fill(chars[Math.floor(Math.random() * chars.length)]).join('');
+        }
+    }
+
+    const offset = getOffset(q.length); // Передаём длину строки
+
+    const tags = ['hipster', 'new'];
+
+    if (!tag && Math.random() < 0.2) {
+        q += ` tag:${getRandomElements(tags, 1)[0]}`;
+    }
+
+    if (!tag && Math.random() < 0.4 && !q.includes('tag:new')) {
+        q += ` year:${getRandomWeightedYear()}`;
+    }
+
+    if (year) {
+        q += ` year:${year}`;
+    }
+
+    if (genre) {
+        q += ` genre:${genre}`;
+    }
+
+    return { q, offset };
+}
+
+function _generateRandomSpotifyQuery(year, tag, genre) {
     let alphabet, q = '';
 
     const offset = getOffset();
