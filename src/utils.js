@@ -52,6 +52,29 @@ function mergeRandomStrings(arr1, count1, arr2, count2) {
     return combined.join('');
 }
 
+function getRandomWeightedYear() {
+    const startYear = 1970;
+    const currentYear = new Date().getFullYear();
+    const totalYears = currentYear - startYear + 1;
+
+    // Генерируем веса, чем новее год, тем выше вероятность
+    let weights = Array.from({ length: totalYears }, (_, i) => Math.pow(i + 1, 2));
+    let sumWeights = weights.reduce((acc, w) => acc + w, 0);
+
+    // Генерация случайного числа в диапазоне суммарных весов
+    let rand = Math.random() * sumWeights;
+
+    // Выбор года на основе веса
+    let cumulative = 0;
+    for (let i = 0; i < totalYears; i++) {
+        cumulative += weights[i];
+        if (rand < cumulative) {
+            return startYear + i;
+        }
+    }
+    return currentYear; // На случай, если что-то пойдет не так
+}
+
 function generateRandomSpotifyQuery(year, tag, genre) {
     let alphabet, q = '';
 
@@ -132,6 +155,10 @@ function generateRandomSpotifyQuery(year, tag, genre) {
 
     if (!tag && Math.random() < 0.2) {
         q += ` tag:${getRandomElements(tags, 1)[0]}`;
+    }
+
+    if (!tag && Math.random() < 0.4) {
+        q += ` year:${getRandomWeightedYear()}`;
     }
 
     if (year) {
