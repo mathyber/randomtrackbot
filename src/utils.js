@@ -37,7 +37,7 @@ ${res?.map(({data, attempts}) => {
   }).join('\n')}`
 }
 
-function _getOffset() {
+function getRandomOffset() {
     return Math.floor(Math.random() * 1000);
 }
 
@@ -100,6 +100,11 @@ function getRandomWeightedYear() {
 function generateRandomSpotifyQuery(year, tag, genre) {
     let alphabet, q = '';
 
+    if (tag) {
+        q = `tag:${tag}`;
+        return { q, offset: getRandomOffset() };
+    }
+
     const latinVowels = ['a', 'e', 'i', 'o', 'u', 'á', 'é', 'í', 'ó', 'ú', 'ä', 'ö', 'ü', 'å', 'æ', 'ø'];
     const latinConsonants = ['b', 'c', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'm', 'n', 'p', 'r', 's', 't', 'v', 'w', 'y', 'ñ', 'ç', 'ß', 'ğ', 'ş'];
     const cyrillicVowels = ['а', 'е', 'ё', 'и', 'о', 'у', 'ы', 'э', 'ю', 'я', 'є', 'і', 'ї', 'ө', 'ү'];
@@ -112,7 +117,7 @@ function generateRandomSpotifyQuery(year, tag, genre) {
     const devanagariChars = ['क', 'ख', 'ग', 'च', 'ज'];
 
     // Тип запроса
-    const queryType = Math.floor(Math.random() * 10);
+    const queryType = Math.floor(Math.random() * 1000);
 
     // Взвешенный выбор письменности
     const rand = Math.random();
