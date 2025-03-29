@@ -21,6 +21,8 @@ by <i>${artists}</i>
 ${releaseDate}
 ${link ? `<a href="${link}">Spotify Link</a>\n` : ''}${youtubeUrl ? `<a href="${youtubeUrl}">YouTube Link</a>` : ''}
 
+${getLastRequestsText(res.logData)}
+
 Осталось запросов сегодня: ${limit || 0}
 @${botNickname}
     `.trim();
