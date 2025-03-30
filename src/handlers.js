@@ -356,7 +356,7 @@ function setupHandlers(bot, { getUserToken, removeUserToken }) {
     }
 
     const botUsers = (ctx) => {
-        const page = parseCommandArgs(ctx);
+        const [_, page] = ctx.match;
         if (page && !Number.isInteger(page)) {
             return ctx.reply('Неверный аргумент', { parse_mode: 'HTML' });
         }
@@ -430,7 +430,7 @@ console.log(page, data?.length, page * pageSize)
         info: { handler: info },
     };
 
-    bot.action(/^botusers_(.+)_([^_]+)$/, (ctx) => botUsers(ctx));
+    bot.action(/^botusers_([^_]+)$/, (ctx) => botUsers(ctx));
 
     Object.entries(commands).forEach(([cmd, { handler }]) => {
         bot.command(cmd, handler);
