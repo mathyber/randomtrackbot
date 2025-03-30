@@ -369,7 +369,7 @@ function setupHandlers(bot, { getUserToken, removeUserToken }) {
                 inlineBtns.push({ text: '<', callback_data: `botusers_${Number(page) - 1}` })
             }
 
-            if ((page * pageSize) < data?.length) {
+            if (data?.length && ((page * pageSize) < data.length)) {
                 inlineBtns.push({ text: '>', callback_data: `botusers_${Number(page) + 1}` })
             }
 
