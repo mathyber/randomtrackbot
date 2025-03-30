@@ -41,8 +41,8 @@ ${DESCRIPTION}
         `
 }
 
-function getLastRequestsText(res) {
-  return `<i>Запросы для последнего поиска: </i>
+function getLastRequestsText(res, text = 'Запросы для последнего поиска: ') {
+  return `<i>${text}</i>
 ${res?.map(({data, attempts}) => {
       const isLast = attempts === res.length;
       return `q: ${data.q}, offset: ${data.offset}, ${!isLast ? 'неудачный поиск' : 'найден трек'}`
@@ -51,12 +51,11 @@ ${res?.map(({data, attempts}) => {
 
 function usersAll() {
     const data = allUsers();
-    console.log(data)
   return `<i>Пользователи: </i>
 ${data?.map(({userId, userRequests}) => {
-    console.log(userRequests)
       return `<b>${userId}</b>
-${userRequests?.map(request => `${request}`)}
+${userRequests?.map(request => `${request.userName}: 
+${getLastRequestsText(request.data, 'запросы:')}`)}
 `
   }).join('\n')}`
 }
@@ -237,7 +236,7 @@ async function getRandomTrack(ctx, year, tag, genre, onlyLongTitle = false) {
             spotifyData.logData = historyQ
         }
     }
-
+console.log(ctx.from)
     saveUserRequest(ctx.from.id, spotifyData?.logData, ctx.from.userName);
 
     if (!spotifyData?.img) {
