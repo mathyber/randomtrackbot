@@ -52,10 +52,11 @@ function getLastRequestsText(res, text = 'Запросы для последне
 function usersAll() {
     const data = allUsers();
     try {
+        const userName = data[0]?.userRequests[0]?.userName;
         return `<i>Пользователи (${data?.length}): </i>
 ${data?.map(({userId, userRequests}) => {
-            return `<b>${userId}</b>
-${userRequests?.map(userRequest => `${getLastRequestsText(userRequest, '', (a, u) => `${u ? `@${u}` : '[no username]'} (${a}): `)}`).join('')}
+            return `<b>${userId} ${userName ? `@${userName}` : '[no username]'} </b>
+${userRequests?.map(userRequest => `${getLastRequestsText(userRequest, '', (a) => `(${a}): `)}`).join('')}
 `
         }).join('\n')}`
     } catch (e) {
