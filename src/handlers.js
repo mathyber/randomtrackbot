@@ -366,11 +366,11 @@ function setupHandlers(bot, { getUserToken, removeUserToken }) {
             const inlineBtns = [];
 
             if (!page && page !== '0') {
-                inlineBtns.push([{ text: '<', callback_data: `botusers_${Number(page) - 1}` }])
+                inlineBtns.push({ text: '<', callback_data: `botusers_${Number(page) - 1}` })
             }
 
             if ((page * pageSize) < data?.length) {
-                inlineBtns.push([{ text: '>', callback_data: `botusers_${Number(page) + 1}` }])
+                inlineBtns.push({ text: '>', callback_data: `botusers_${Number(page) + 1}` })
             }
 
             if (userId.toString() === config.ADMIN_TELEGRAM_ID.toString()) {
