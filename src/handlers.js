@@ -364,7 +364,7 @@ function setupHandlers(bot, { getUserToken, removeUserToken }) {
             const data = allUsers();
             const userId = Number(ctx.from.id);
             const inlineBtns = [];
-
+console.log(page, data?.length, page * pageSize)
             if (data?.length && (!page && page !== '0')) {
                 inlineBtns.push({ text: '<', callback_data: `botusers_${Number(page) - 1}` })
             }
