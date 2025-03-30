@@ -12,6 +12,7 @@ const config = {
     PORT: 3000,
     ANTI_CLASSIC_MAX_LENGTH_TITLE_FILTER: 45,
     SERVER_IP: '38.180.222.180',
+    SERVER_URL: 'laritovski.ru',
     ADMIN_TELEGRAM_ID: '1422537077'
 };
 
