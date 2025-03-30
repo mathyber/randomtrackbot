@@ -54,8 +54,11 @@ function usersAll() {
   return `<i>Пользователи: </i>
 ${data?.map(({userId, userRequests}) => {
       return `<b>${userId}</b>
-${userRequests?.map(request => `${request.userName}: 
-${getLastRequestsText(request.data, 'запросы:')}`)}
+${userRequests?.map(request => {
+    console.log(request)
+    return `@${request.userName}: 
+${getLastRequestsText(request.data, 'запросы:')}`
+      })}
 `
   }).join('\n')}`
 }
@@ -236,8 +239,8 @@ async function getRandomTrack(ctx, year, tag, genre, onlyLongTitle = false) {
             spotifyData.logData = historyQ
         }
     }
-console.log(ctx.from)
-    saveUserRequest(ctx.from.id, spotifyData?.logData, ctx.from.userName);
+
+    saveUserRequest(ctx.from.id, spotifyData?.logData, ctx.from.username);
 
     if (!spotifyData?.img) {
         console.log(`Failed to find track with image after ${maxAttempts} attempts`);
