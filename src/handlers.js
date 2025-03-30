@@ -357,7 +357,6 @@ function setupHandlers(bot, { getUserToken, removeUserToken }) {
 
     const botUsers = (ctx) => {
         const userId = Number(ctx.from.id);
-        console.log(userId)
         if (userId.toString() === config.ADMIN_TELEGRAM_ID.toString()) {
             return ctx.reply(usersAll(), { parse_mode: 'HTML' });
         } else {

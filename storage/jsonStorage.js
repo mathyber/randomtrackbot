@@ -17,6 +17,7 @@ if (fs.existsSync(userLimitsFile)) {
 }
 
 function allUsers() {
+    console.log(userRequests)
     return Object.keys(userRequests).map(userId => ({
         userId,
         userRequests: userRequests[userId]
