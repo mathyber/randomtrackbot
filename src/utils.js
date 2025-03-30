@@ -41,11 +41,11 @@ ${DESCRIPTION}
         `
 }
 
-function getLastRequestsText(res, text = 'Запросы для последнего поиска: ') {
+function getLastRequestsText(res, text = 'Запросы для последнего поиска: ', addData) {
   return `<i>${text}</i>
-${res?.map(({data, attempts}) => {
+${res?.map(({data, attempts, userName}) => {
       const isLast = attempts === res.length;
-      return `q: ${data.q}, offset: ${data.offset}, ${!isLast ? 'неудачный поиск' : 'найден трек'}`
+      return `${addData ? addData(attempts, userName) : ''}q: ${data.q}, offset: ${data.offset}, ${!isLast ? 'неудачный поиск' : 'найден трек'}`
   }).join('\n')}`
 }
 
@@ -54,9 +54,7 @@ function usersAll() {
   return `<i>Пользователи: </i>
 ${data?.map(({userId, userRequests}) => {
       return `<b>${userId}</b>
-${userRequests?.map(request => {
-    return request.map(r => `@${r.userName} (${r.attempts}): 
-${getLastRequestsText(r, 'запросы:')}`)})}
+${getLastRequestsText(userRequests, 'запросы', (a, u) => `@${u} (${a}): `)}
 `
   }).join('\n')}`
 }
