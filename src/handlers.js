@@ -430,7 +430,7 @@ console.log(page, data?.length, page * pageSize)
         info: { handler: info },
     };
 
-    bot.action(/^botusers_([^_]+)$/, (ctx) => {
+    bot.action(/^botusers_(.+)$/, (ctx) => {
         const [_, pageStr] = ctx.match;
         botUsers(ctx, pageStr)
     });
