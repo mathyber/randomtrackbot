@@ -356,21 +356,22 @@ function setupHandlers(bot, { getUserToken, removeUserToken }) {
     }
 
     const botUsers = (ctx) => {
-        const [_, page] = ctx.match;
-        if (page && !Number.isInteger(page)) {
+        const [_, pageStr] = ctx.match;
+        if (pageStr && !Number.isInteger(pageStr)) {
             return ctx.reply('Неверный аргумент', { parse_mode: 'HTML' });
         }
         try {
             const data = allUsers();
             const userId = Number(ctx.from.id);
             const inlineBtns = [];
+            const page = Number(pageStr || 0);
 console.log(page, data?.length, page * pageSize)
-            if (data?.length && (!page && page !== '0')) {
-                inlineBtns.push({ text: '<', callback_data: `botusers_${Number(page) - 1}` })
+            if (data?.length && (page && page !== 0)) {
+                inlineBtns.push({ text: '<', callback_data: `botusers_${page - 1}` })
             }
 
             if (data?.length && ((page * pageSize) < data.length)) {
-                inlineBtns.push({ text: '>', callback_data: `botusers_${Number(page) + 1}` })
+                inlineBtns.push({ text: '>', callback_data: `botusers_${page + 1}` })
             }
 
             if (userId.toString() === config.ADMIN_TELEGRAM_ID.toString()) {
