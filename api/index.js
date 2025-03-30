@@ -2,6 +2,8 @@ const express = require('express');
 const axios = require('axios');
 const config = require('../config/config');
 const {startBot} = require("../src/bot");
+const fs = require('fs');
+const https = require('https');
 
 const app = express();
 const PORT = config.PORT;
@@ -12,6 +14,10 @@ global.remoteSessions = remoteSessions;
 
 app.use(express.json());
 
+const options = {
+    key: fs.readFileSync('/etc/letsencrypt/live/laritovski.ru/privkey.pem'), // Путь к приватному ключу
+    cert: fs.readFileSync('/etc/letsencrypt/live/laritovski.ru/fullchain.pem') // Путь к сертификату
+};
 
 app.get('/callback', async (req, res) => {
     const code = req.query.code;
@@ -56,7 +62,7 @@ app.get('/callback', async (req, res) => {
     }
 });
 
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+https.createServer(options, app).listen(PORT, () => {
+    console.log('Server running');
     startBot();
 });
