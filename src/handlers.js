@@ -85,16 +85,14 @@ const fetchTrack = async (ctx, { year, tag, genre, onlyLongTitle = false }, getU
             const commandType = onlyLongTitle ? 'long_title' : genre ? 'genre' : year ? 'fresh' : tag === 'new' ? 'ultra_fresh' : tag === 'hipster' ? 'hipster' : 'track';
             if (token) {
                 inlineBtns.push([
-                    { text: '▶️ Play', callback_data: `play_${trackId}` },
-                    { text: '⏩ с 1:00', callback_data: `playfrom_${trackId}` },
-                ]);
-                inlineBtns.push([
-                    { text: '⏸️ Pause', callback_data: `pause_${trackId}` },
-                    { text: '❤️ Like', callback_data: `like_${trackId}` }
+                    { text: '▶️', callback_data: `play_${trackId}` },
+                    { text: '⏩', callback_data: `playfrom_${trackId}` },
+                    { text: '⏸️', callback_data: `pause_${trackId}` },
+                    { text: '❤️', callback_data: `like_${trackId}` }
                 ]);
                 inlineBtns.push([
                     { text: '🔄▶️ Ещё + Play', callback_data: `moreplay_${commandType}_${genre}` },
-                    { text: '🔄⏩ Ещё + с 1:00', callback_data: `moreplayfrom_${commandType}_${genre}` }
+                    { text: '🔄⏩ Ещё + 1m', callback_data: `moreplayfrom_${commandType}_${genre}` }
                 ]);
             }
 
