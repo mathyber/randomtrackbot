@@ -370,7 +370,7 @@ console.log(page, data?.length, page * pageSize)
                 inlineBtns.push({ text: '<', callback_data: `botusers_${page - 1}` })
             }
 
-            if (data?.length && ((page * pageSize) < data.length)) {
+            if (data?.length && (((page + 1) * pageSize) < data.length)) {
                 inlineBtns.push({ text: '>', callback_data: `botusers_${page + 1}` })
             }
 
