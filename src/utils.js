@@ -51,12 +51,18 @@ function getLastRequestsText(res, text = 'Запросы для последне
 
 function usersAll() {
     const data = allUsers();
-  return `<i>Пользователи: </i>
+    try {
+        return `<i>Пользователи (${data?.length})): </i>
 ${data?.map(({userId, userRequests}) => {
-      return `<b>${userId}</b>
+            return `<b>${userId}</b>
 ${userRequests?.map(userRequest => `${getLastRequestsText(userRequest, '', (a, u) => `${u ? `@${u}` : '[no username]'} (${a}): `)}`).join('')}
 `
-  }).join('\n')}`
+        }).join('\n')}`
+    } catch (e) {
+        console.log(e);
+        return `<i>Пользователи (${data?.length})): </i>`;
+    }
+
 }
 
 function getRandomOffset() {
