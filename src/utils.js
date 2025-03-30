@@ -55,10 +55,8 @@ function usersAll() {
 ${data?.map(({userId, userRequests}) => {
       return `<b>${userId}</b>
 ${userRequests?.map(request => {
-    console.log(request)
-    return `@${request.userName}: 
-${getLastRequestsText(request.data, 'запросы:')}`
-      })}
+    return request.map(r => `@${r.userName} (${r.attempts}): 
+${getLastRequestsText(r.data, 'запросы:')}`)})}
 `
   }).join('\n')}`
 }
