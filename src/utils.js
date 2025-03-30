@@ -54,7 +54,7 @@ function usersAll() {
   return `<i>Пользователи: </i>
 ${data?.map(({userId, userRequests}) => {
       return `<b>${userId}</b>
-${userRequests?.map(userRequest => `${getLastRequestsText(userRequest, '', (a, u) => `${u ? `@${u}` : '<?>'} (${a}): `)}`).join('\n\n')}
+${userRequests?.map(userRequest => `${getLastRequestsText(userRequest, '', (a, u) => `${u ? `@${u}` : '[no username]'} (${a}): `)}`).join('\n\n')}
 `
   }).join('\n')}`
 }
