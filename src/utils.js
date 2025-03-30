@@ -54,7 +54,7 @@ function getRequests(userRequests) {
 }
 
 function getPageItems(array, pageSize, pageNumber) {
-    const startIndex = (pageNumber - 1) * pageSize;
+    const startIndex = (pageNumber) * pageSize;
     return array.slice(startIndex, startIndex + pageSize);
 }
 
