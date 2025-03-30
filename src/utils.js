@@ -60,7 +60,7 @@ ${userRequests?.map(userRequest => `${getLastRequestsText(userRequest, '', (a, u
         }).join('\n')}`
     } catch (e) {
         console.log(e);
-        return `<i>Пользователи (${data?.length})): </i>`;
+        return `<i>Пользователи (${data?.length}))</i>`;
     }
 
 }
