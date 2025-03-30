@@ -58,12 +58,12 @@ function usersAll(requests = false) {
     try {
         return `<i>Пользователи (${data?.length}): </i>
 ${data?.map(({userId, userRequests}) => {
-            const userName = userRequests[0]?.[0].userName;
+            const userName = userRequests[0]?.[0]?.userName;
             return `<b>${userId} ${userName ? `@${userName}` : '[no username]'} </b> ${requests ? getRequests(userRequests) : ''}`
         }).join('\n')}`
     } catch (e) {
         console.log(e);
-        return `<i>Пользователи (${data?.length}))</i>`;
+        return `<i>Пользователи (${data?.length})</i>`;
     }
 
 }
