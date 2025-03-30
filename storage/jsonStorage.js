@@ -2,8 +2,8 @@ const fs = require('fs');
 const path = require('path');
 const config = require("../config/config");
 
-const userRequestsFile = path.join(__dirname, '../data/userRequests.json');
-const userLimitsFile = path.join(__dirname, '../data/userLimits.json');
+const userRequestsFile = '/var/bot-data/userRequests.json';
+const userLimitsFile = '/var/bot-data/userLimits.json';
 
 let userRequests = {};
 let userLimits = {};
