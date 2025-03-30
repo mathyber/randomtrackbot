@@ -316,7 +316,7 @@ function setupHandlers(bot, { getUserToken, removeUserToken }) {
             return ctx.reply('Ты уже авторизован', { parse_mode: 'HTML' });
         }
 
-        const authUrl = `https://accounts.spotify.com/authorize?client_id=${config.SPOTIFY_CLIENT_ID}&response_type=code&redirect_uri=https://${config.SERVER_IP}:${config.PORT}/callback&scope=user-read-playback-state+user-modify-playback-state+user-library-modify&state=${userId}`;
+        const authUrl = `https://accounts.spotify.com/authorize?client_id=${config.SPOTIFY_CLIENT_ID}&response_type=code&redirect_uri=https://${config.SERVER_URL}:${config.PORT}/callback&scope=user-read-playback-state+user-modify-playback-state+user-library-modify&state=${userId}`;
         return ctx.reply(
             'Авторизуйся в Spotify (нужен премиум):',
             {
