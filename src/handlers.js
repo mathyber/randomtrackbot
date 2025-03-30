@@ -355,10 +355,10 @@ function setupHandlers(bot, { getUserToken, removeUserToken }) {
         return ctx.replyWithPhoto({ source: pngLogo }, { caption: getInfo(), parse_mode: 'HTML', })
     }
 
-    const botUsers = (ctx) => {
+    const botUsers = (ctx, r) => {
         const userId = Number(ctx.from.id);
         if (userId.toString() === config.ADMIN_TELEGRAM_ID.toString()) {
-            return ctx.reply(usersAll(), { parse_mode: 'HTML' });
+            return ctx.reply(usersAll(r), { parse_mode: 'HTML' });
         } else {
             return ctx.reply('нет доступа.', { parse_mode: 'HTML' });
         }
@@ -400,7 +400,8 @@ function setupHandlers(bot, { getUserToken, removeUserToken }) {
         auth: { handler: auth },
         logout: { handler: logout },
         last_requests: { handler: lastRequests },
-        bot_users: { handler: botUsers },
+        bot_users: { handler: (ctx) => botUsers(ctx) },
+        bot_users_r: { handler: (ctx) => botUsers(ctx, true) },
         info: { handler: info },
     };
 

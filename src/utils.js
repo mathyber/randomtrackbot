@@ -49,15 +49,17 @@ function getLastRequestsText(res, text = 'Запросы для последне
   }).join('\n')}</blockquote>`
 }
 
-function usersAll() {
+function getRequests(userRequests) {
+    return `${userRequests?.map(userRequest => `${getLastRequestsText(userRequest, '', (a) => `(${a}): `)}`).join('')}`
+}
+
+function usersAll(requests = false) {
     const data = allUsers();
     try {
         return `<i>Пользователи (${data?.length}): </i>
 ${data?.map(({userId, userRequests}) => {
             const userName = userRequests[0]?.[0].userName;
-            return `<b>${userId} ${userName ? `@${userName}` : '[no username]'} </b>
-${userRequests?.map(userRequest => `${getLastRequestsText(userRequest, '', (a) => `(${a}): `)}`).join('')}
-`
+            return `<b>${userId} ${userName ? `@${userName}` : '[no username]'} </b> ${requests ? getRequests(userRequests) : ''}`
         }).join('\n')}`
     } catch (e) {
         console.log(e);
