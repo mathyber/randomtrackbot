@@ -87,6 +87,8 @@ const fetchTrack = async (ctx, { year, tag, genre, onlyLongTitle = false }, getU
                 inlineBtns.push([
                     { text: '▶️ Play', callback_data: `play_${trackId}` },
                     { text: '⏩ с 1:00', callback_data: `playfrom_${trackId}` },
+                ]);
+                inlineBtns.push([
                     { text: '⏸️ Pause', callback_data: `pause_${trackId}` },
                     { text: '❤️ Like', callback_data: `like_${trackId}` }
                 ]);
@@ -94,12 +96,11 @@ const fetchTrack = async (ctx, { year, tag, genre, onlyLongTitle = false }, getU
                     { text: '🔄▶️ Ещё + Play', callback_data: `moreplay_${commandType}_${genre}` },
                     { text: '🔄⏩ Ещё + с 1:00', callback_data: `moreplayfrom_${commandType}_${genre}` }
                 ]);
-            } else {
-
-                inlineBtns.push([
-                    { text: '🔄 Ещё', callback_data: `more_${commandType}_${genre}` },
-                ]);
             }
+
+            inlineBtns.push([
+                { text: '🔄 Ещё', callback_data: `more_${commandType}_${genre}` },
+            ]);
 
             const reply = getPostTrackResult(spotifyData, youtubeUrl, limitCheck.remaining - 1);
             await ctx.replyWithPhoto(
