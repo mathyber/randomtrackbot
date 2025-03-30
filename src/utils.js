@@ -43,10 +43,10 @@ ${DESCRIPTION}
 
 function getLastRequestsText(res, text = 'Запросы для последнего поиска: ', addData) {
   return `<i>${text}</i>
-${res?.map(({data, attempts, userName}) => {
+<blockquote>${res?.map(({data, attempts, userName}) => {
       const isLast = attempts === res.length;
       return `${addData ? addData(attempts, userName) : ''}q: ${data.q}, offset: ${data.offset}, ${!isLast ? 'неудачный поиск' : 'найден трек'}`
-  }).join('\n')}`
+  }).join('\n')}</blockquote>`
 }
 
 function usersAll() {
@@ -54,7 +54,7 @@ function usersAll() {
   return `<i>Пользователи: </i>
 ${data?.map(({userId, userRequests}) => {
       return `<b>${userId}</b>
-${userRequests?.map(userRequest => `<blockquote>${getLastRequestsText(userRequest, '', (a, u) => `${u ? `@${u}` : '[no username]'} (${a}): `)}</blockquote>`).join('')}
+${userRequests?.map(userRequest => `${getLastRequestsText(userRequest, '', (a, u) => `${u ? `@${u}` : '[no username]'} (${a}): `)}`).join('')}
 `
   }).join('\n')}`
 }
