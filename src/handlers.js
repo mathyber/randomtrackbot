@@ -13,7 +13,8 @@ const {
     getPostTrackResult,
     getRandomTrack,
     getLastRequestsText,
-    getInfo
+    getInfo,
+    usersAll
 } = require("./utils");
 const path = require('path');
 const axios = require('axios');
@@ -354,6 +355,15 @@ function setupHandlers(bot, { getUserToken, removeUserToken }) {
         return ctx.replyWithPhoto({ source: pngLogo }, { caption: getInfo(), parse_mode: 'HTML', })
     }
 
+    const botUsers = (ctx) => {
+        const userId = Number(ctx.from.id);
+        if (userId === config.ADMIN_TELEGRAM_ID) {
+            return ctx.reply(usersAll(), { parse_mode: 'HTML' });
+        } else {
+            return ctx.reply('нет доступа.', { parse_mode: 'HTML' });
+        }
+    }
+
     const commands = {
         track: {
             handler: (ctx) => fetchTrack(ctx, {}, getUserToken),
@@ -390,6 +400,7 @@ function setupHandlers(bot, { getUserToken, removeUserToken }) {
         auth: { handler: auth },
         logout: { handler: logout },
         last_requests: { handler: lastRequests },
+        bot_users: { handler: botUsers },
         info: { handler: info },
     };
 

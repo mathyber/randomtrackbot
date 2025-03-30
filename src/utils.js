@@ -1,5 +1,5 @@
 const config = require("../config/config");
-const { saveUserRequest } = require("../storage/jsonStorage");
+const { saveUserRequest, allUsers } = require("../storage/jsonStorage");
 const { findSongSpotify, findSongFromAlbumSpotify } = require("../services/spotifyService");
 const {ALL_COMMANDS_TEXT, DESCRIPTION} = require("../const/const");
 
@@ -41,11 +41,20 @@ ${DESCRIPTION}
         `
 }
 
-function getLastRequestsText (res) {
+function getLastRequestsText(res) {
   return `<i>Запросы для последнего поиска: </i>
 ${res?.map(({data, attempts}) => {
       const isLast = attempts === res.length;
       return `q: ${data.q}, offset: ${data.offset}, ${!isLast ? 'неудачный поиск' : 'найден трек'}`
+  }).join('\n')}`
+}
+
+function usersAll() {
+    const data = allUsers();
+    console.log(data)
+  return `<i>Пользователи: </i>
+${data?.map(({userId, }) => {
+      return `q: ${userId}`
   }).join('\n')}`
 }
 
@@ -235,4 +244,4 @@ async function getRandomTrack(ctx, year, tag, genre, onlyLongTitle = false) {
     return spotifyData;
 }
 
-module.exports = { getOffset, getPostTrackResult, generateRandomSpotifyQuery, getRandomTrack, getLastRequestsText, getInfo };
+module.exports = { getOffset, getPostTrackResult, generateRandomSpotifyQuery, getRandomTrack, getLastRequestsText, getInfo, usersAll };

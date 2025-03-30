@@ -16,6 +16,13 @@ if (fs.existsSync(userLimitsFile)) {
     userLimits = JSON.parse(fs.readFileSync(userLimitsFile, 'utf8'));
 }
 
+function allUsers() {
+    return Object.keys(userRequests).map(userId => ({
+        userId,
+        userRequests: userRequests[userId]
+    }))
+}
+
 function saveUserRequest(userId, requests) {
     try {
         if (!Array.isArray(requests)) {
@@ -127,5 +134,6 @@ module.exports = {
     activatePremium,
     premiumUntil,
     isPremium,
-    getLastUserRequests
+    getLastUserRequests,
+    allUsers
 };
