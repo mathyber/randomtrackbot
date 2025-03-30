@@ -29,7 +29,8 @@ const COMMANDS = [
     COMMANDS_ALL[14],
 ]
 const ALL_COMMANDS_TEXT = COMMANDS.map(c => `${c.cmd} - ${c.description}`).join('\n');
+const pageSize = 1;
 
 module.exports = {
-    DESCRIPTION, ALL_COMMANDS_TEXT, COMMANDS, COMMANDS_ALL, currentYear
+    DESCRIPTION, ALL_COMMANDS_TEXT, COMMANDS, COMMANDS_ALL, currentYear, pageSize
 }

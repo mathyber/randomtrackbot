@@ -6,7 +6,7 @@ const {
     isPremium,
     premiumUntil,
     activatePremium,
-    getLastUserRequests
+    getLastUserRequests, allUsers
 } = require('../storage/jsonStorage');
 const config = require('../config/config');
 const {
@@ -18,7 +18,7 @@ const {
 } = require("./utils");
 const path = require('path');
 const axios = require('axios');
-const {COMMANDS, ALL_COMMANDS_TEXT, DESCRIPTION, currentYear} = require("../const/const");
+const {COMMANDS, ALL_COMMANDS_TEXT, DESCRIPTION, currentYear, pageSize} = require("../const/const");
 const pngLogo = path.join(__dirname, '../files/1.png');
 const lastRequestTime = new Map();
 
@@ -355,11 +355,31 @@ function setupHandlers(bot, { getUserToken, removeUserToken }) {
         return ctx.replyWithPhoto({ source: pngLogo }, { caption: getInfo(), parse_mode: 'HTML', })
     }
 
-    const botUsers = (ctx, r) => {
+    const botUsers = (ctx) => {
+        const page = parseCommandArgs(ctx);
+        if (page && !Number.isInteger(page)) {
+            return ctx.reply('Неверный аргумент', { parse_mode: 'HTML' });
+        }
         try {
+            const data = allUsers();
             const userId = Number(ctx.from.id);
+            const inlineBtns = [];
+
+            if (!page && page !== '0') {
+                inlineBtns.push([{ text: '<', callback_data: `botusers_${Number(page) - 1}` }])
+            }
+
+            if ((page * pageSize) < data?.length) {
+                inlineBtns.push([{ text: '>', callback_data: `botusers_${Number(page) + 1}` }])
+            }
+
             if (userId.toString() === config.ADMIN_TELEGRAM_ID.toString()) {
-                return ctx.reply(usersAll(r), { parse_mode: 'HTML' });
+                return ctx.reply(usersAll(data, page), {
+                    reply_markup: {
+                        inline_keyboard: [inlineBtns]
+                    },
+                    parse_mode: 'HTML'
+                });
             } else {
                 return ctx.reply('нет доступа.', { parse_mode: 'HTML' });
             }
@@ -409,6 +429,8 @@ function setupHandlers(bot, { getUserToken, removeUserToken }) {
         // bot_users_r: { handler: (ctx) => botUsers(ctx, true) },
         info: { handler: info },
     };
+
+    bot.action(/^botusers_(.+)_([^_]+)$/, (ctx) => botUsers(ctx));
 
     Object.entries(commands).forEach(([cmd, { handler }]) => {
         bot.command(cmd, handler);

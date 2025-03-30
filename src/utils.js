@@ -1,7 +1,7 @@
 const config = require("../config/config");
-const { saveUserRequest, allUsers } = require("../storage/jsonStorage");
+const { saveUserRequest } = require("../storage/jsonStorage");
 const { findSongSpotify, findSongFromAlbumSpotify } = require("../services/spotifyService");
-const {ALL_COMMANDS_TEXT, DESCRIPTION} = require("../const/const");
+const {ALL_COMMANDS_TEXT, DESCRIPTION, pageSize} = require("../const/const");
 
 function formatDate(dateString) {
     const [year, month, day] = dateString.split("-").map(Number);
@@ -53,13 +53,17 @@ function getRequests(userRequests) {
     return `${userRequests?.map(userRequest => `${getLastRequestsText(userRequest, '', (a) => `(${a}): `)}`).join('')}`
 }
 
-function usersAll(requests = false) {
-    const data = allUsers();
+function getPageItems(array, pageSize, pageNumber) {
+    const startIndex = (pageNumber - 1) * pageSize;
+    return array.slice(startIndex, startIndex + pageSize);
+}
+
+function usersAll(data, page = 0) {
     try {
         return `<i>Пользователи (${data?.length}): </i>
-${data?.map(({userId, userRequests}) => {
+${getPageItems(data, pageSize, page)?.map(({userId, userRequests}) => {
             const userName = userRequests[0]?.[0]?.userName;
-            return `<b>${userId} ${userName ? `@${userName}` : '[no username]'} [${userRequests?.length || 0}] </b> ${requests ? getRequests(userRequests) : ''}`
+            return `<b>${userId} ${userName ? `@${userName}` : '[no username]'} [${userRequests?.length || 0}] </b>`
         }).join('\n')}`
     } catch (e) {
         console.log(e);
