@@ -54,7 +54,7 @@ function usersAll() {
     console.log(data)
   return `<i>Пользователи: </i>
 ${data?.map(({userId, }) => {
-      return `q: ${userId}`
+      return `<a href="tg://user?id=${userId}">${userId}</a>`
   }).join('\n')}`
 }
 
