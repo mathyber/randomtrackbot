@@ -56,7 +56,7 @@ ${data?.map(({userId, userRequests}) => {
       return `<b>${userId}</b>
 ${userRequests?.map(request => {
     return request.map(r => `@${r.userName} (${r.attempts}): 
-${getLastRequestsText(r.data, 'запросы:')}`)})}
+${getLastRequestsText(r, 'запросы:')}`)})}
 `
   }).join('\n')}`
 }
