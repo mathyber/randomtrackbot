@@ -64,7 +64,8 @@ function usersAll(data, page = 0) {
 ${getPageItems(data, pageSize, page)?.map(({userId, userRequests}) => {
             const userName = userRequests[0]?.[0]?.userName;
             return `<b>${userId} ${userName ? `@${userName}` : '[no username]'} [${userRequests?.length || 0}] </b>`
-        }).join('\n')}`
+        }).join('\n')}
+<i>страница ${page + 1}/${Math.ceil(data?.length / pageSize)}: </i>`
     } catch (e) {
         console.log(e);
         return `<i>Пользователи (${data?.length})</i>`;
