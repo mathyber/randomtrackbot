@@ -44,7 +44,6 @@ ${DESCRIPTION}
 function getLastRequestsText(res, text = 'Запросы для последнего поиска: ', addData) {
   return `<i>${text}</i>
 ${res?.map(({data, attempts, userName}) => {
-    console.log(data, attempts, userName)
       const isLast = attempts === res.length;
       return `${addData ? addData(attempts, userName) : ''}q: ${data.q}, offset: ${data.offset}, ${!isLast ? 'неудачный поиск' : 'найден трек'}`
   }).join('\n')}`
@@ -55,7 +54,7 @@ function usersAll() {
   return `<i>Пользователи: </i>
 ${data?.map(({userId, userRequests}) => {
       return `<b>${userId}</b>
-${getLastRequestsText(userRequests, 'запросы', (a, u) => `@${u} (${a}): `)}
+${userRequests?.map(userRequest => `${getLastRequestsText(userRequest, 'запросы', (a, u) => `@${u} (${a}): `)}`).join('\n\n')}
 `
   }).join('\n')}`
 }
