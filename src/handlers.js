@@ -355,8 +355,7 @@ function setupHandlers(bot, { getUserToken, removeUserToken }) {
         return ctx.replyWithPhoto({ source: pngLogo }, { caption: getInfo(), parse_mode: 'HTML', })
     }
 
-    const botUsers = (ctx) => {
-        const [_, pageStr] = ctx.match;
+    const botUsers = (ctx, pageStr) => {
         if (pageStr && !Number.isInteger(pageStr)) {
             return ctx.reply('Неверный аргумент', { parse_mode: 'HTML' });
         }
@@ -431,7 +430,10 @@ console.log(page, data?.length, page * pageSize)
         info: { handler: info },
     };
 
-    bot.action(/^botusers_([^_]+)$/, (ctx) => botUsers(ctx));
+    bot.action(/^botusers_([^_]+)$/, (ctx) => {
+        const [_, pageStr] = ctx.match;
+        botUsers(ctx, pageStr)
+    });
 
     Object.entries(commands).forEach(([cmd, { handler }]) => {
         bot.command(cmd, handler);
