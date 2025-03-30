@@ -15,7 +15,7 @@ const COMMANDS_ALL = [
     { cmd: '/auth', description: 'авторизоваться в Spotify (нужен премиум Spotify)' },
     { cmd: '/like', description: 'добавить последний трек в любимые (нужен премиум Spotify)' },
     { cmd: '/logout', description: 'выйти из аккаунта Spotify' },
-    { cmd: '/last_requests', description: 'выйти из аккаунта Spotify' },
+    { cmd: '/last_requests', description: 'данные последнего поиска' },
     { cmd: '/info', description: 'информация о боте' },
 ];
 const COMMANDS = [

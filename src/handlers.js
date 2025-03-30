@@ -356,11 +356,16 @@ function setupHandlers(bot, { getUserToken, removeUserToken }) {
     }
 
     const botUsers = (ctx, r) => {
-        const userId = Number(ctx.from.id);
-        if (userId.toString() === config.ADMIN_TELEGRAM_ID.toString()) {
-            return ctx.reply(usersAll(r), { parse_mode: 'HTML' });
-        } else {
-            return ctx.reply('нет доступа.', { parse_mode: 'HTML' });
+        try {
+            const userId = Number(ctx.from.id);
+            if (userId.toString() === config.ADMIN_TELEGRAM_ID.toString()) {
+                return ctx.reply(usersAll(r), { parse_mode: 'HTML' });
+            } else {
+                return ctx.reply('нет доступа.', { parse_mode: 'HTML' });
+            }
+        } catch (e) {
+            console.error(e);
+            return ctx.reply('Ошибка', { parse_mode: 'HTML' });
         }
     }
 
