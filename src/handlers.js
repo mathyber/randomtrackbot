@@ -97,7 +97,7 @@ const fetchTrack = async (ctx, { year, tag, genre, onlyLongTitle = false }, getU
             }
 
             inlineBtns.push([
-                { text: '🔄 Ещё', callback_data: `more_${commandType}_${genre}` },
+                { text: `🔄 Ещё: /${commandType} ${genre || ''}`, callback_data: `more_${commandType}_${genre}` },
             ]);
 
             const reply = getPostTrackResult(spotifyData, youtubeUrl, limitCheck.remaining - 1);
