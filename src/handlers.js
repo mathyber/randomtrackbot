@@ -356,14 +356,14 @@ function setupHandlers(bot, { getUserToken, removeUserToken }) {
     }
 
     const botUsers = (ctx, pageStr) => {
-        if (pageStr && !Number.isInteger(pageStr)) {
+        const page = Number(pageStr || 0);
+        if (isNaN(page)) {
             return ctx.reply('Неверный аргумент', { parse_mode: 'HTML' });
         }
         try {
             const data = allUsers();
             const userId = Number(ctx.from.id);
             const inlineBtns = [];
-            const page = Number(pageStr || 0);
 console.log(page, data?.length, page * pageSize)
             if (data?.length && (page && page !== 0)) {
                 inlineBtns.push({ text: '<', callback_data: `botusers_${page - 1}` })
@@ -432,7 +432,6 @@ console.log(page, data?.length, page * pageSize)
 
     bot.action(/^botusers_(.+)$/, (ctx) => {
         const [_, pageStr] = ctx.match;
-        console.log(pageStr)
         botUsers(ctx, pageStr)
     });
 
