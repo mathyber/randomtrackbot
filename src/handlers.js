@@ -406,7 +406,7 @@ function setupHandlers(bot, { getUserToken, removeUserToken }) {
         logout: { handler: logout },
         last_requests: { handler: lastRequests },
         bot_users: { handler: (ctx) => botUsers(ctx) },
-        bot_users_r: { handler: (ctx) => botUsers(ctx, true) },
+        // bot_users_r: { handler: (ctx) => botUsers(ctx, true) },
         info: { handler: info },
     };
 

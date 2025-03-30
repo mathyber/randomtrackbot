@@ -59,13 +59,12 @@ function usersAll(requests = false) {
         return `<i>Пользователи (${data?.length}): </i>
 ${data?.map(({userId, userRequests}) => {
             const userName = userRequests[0]?.[0]?.userName;
-            return `<b>${userId} ${userName ? `@${userName}` : '[no username]'} </b> ${requests ? getRequests(userRequests) : ''}`
+            return `<b>${userId} ${userName ? `@${userName}` : '[no username]'} [${userRequests?.length || 0}] </b> ${requests ? getRequests(userRequests) : ''}`
         }).join('\n')}`
     } catch (e) {
         console.log(e);
         return `<i>Пользователи (${data?.length})</i>`;
     }
-
 }
 
 function getRandomOffset() {
