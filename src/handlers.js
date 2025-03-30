@@ -94,6 +94,11 @@ const fetchTrack = async (ctx, { year, tag, genre, onlyLongTitle = false }, getU
                     { text: '🔄▶️ Ещё + Play', callback_data: `moreplay_${commandType}_${genre}` },
                     { text: '🔄⏩ Ещё + с 1:00', callback_data: `moreplayfrom_${commandType}_${genre}` }
                 ]);
+            } else {
+
+                inlineBtns.push([
+                    { text: '🔄 Ещё', callback_data: `more_${commandType}_${genre}` },
+                ]);
             }
 
             const reply = getPostTrackResult(spotifyData, youtubeUrl, limitCheck.remaining - 1);
@@ -415,14 +420,18 @@ function setupHandlers(bot, { getUserToken, removeUserToken }) {
         }
     });
 
-    const morePlay = async (ctx, isPlayFrom) => {
+    const more = async (ctx) => {
         const [_, commandType, genreValue] = ctx.match;
         const year = commandType === 'fresh' ? currentYear : null;
         const tag = commandType === 'ultra_fresh' ? 'new' : commandType === 'hipster' ? 'hipster' : null;
         const genre = commandType === 'genre' ? genreValue : null;
         const onlyLongTitle = commandType === 'long_title';
 
-        await fetchTrack(ctx, { year, tag, genre, onlyLongTitle }, getUserToken);
+        await fetchTrack(ctx, {year, tag, genre, onlyLongTitle}, getUserToken);
+    }
+
+    const morePlay = async (ctx, isPlayFrom) => {
+        await more(ctx);
         if (isPlayFrom) {
             await playFrom(ctx, true, null, '1:00');
         } else {
@@ -430,6 +439,7 @@ function setupHandlers(bot, { getUserToken, removeUserToken }) {
         }
     };
 
+    bot.action(/^more_(.+)_([^_]+)$/, (ctx) => more(ctx));
     bot.action(/^moreplay_(.+)_([^_]+)$/, (ctx) => morePlay(ctx));
     bot.action(/^moreplayfrom_(.+)_([^_]+)$/, (ctx) => morePlay(ctx, true));
 
