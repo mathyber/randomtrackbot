@@ -42,6 +42,7 @@ ${DESCRIPTION}
 }
 
 function getLastRequestsText(res, text = 'Запросы для последнего поиска: ', addData) {
+    console.log(res)
   return `<i>${text}</i>
 ${res?.map(({data, attempts, userName}) => {
       const isLast = attempts === res.length;
