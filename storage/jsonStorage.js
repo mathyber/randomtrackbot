@@ -17,14 +17,13 @@ if (fs.existsSync(userLimitsFile)) {
 }
 
 function allUsers() {
-    console.log(userRequests)
     return Object.keys(userRequests).map(userId => ({
         userId,
         userRequests: userRequests[userId]
     }))
 }
 
-function saveUserRequest(userId, requests) {
+function saveUserRequest(userId, requests, userName) {
     try {
         if (!Array.isArray(requests)) {
             throw new Error('requests must be an array'); // Проверка на массив
@@ -36,7 +35,7 @@ function saveUserRequest(userId, requests) {
 
         // Добавляем массив объектов с текущим timestamp
         const timestamp = new Date().toISOString();
-        const requestArray = requests.map(req => ({ ...req, time: timestamp }));
+        const requestArray = requests.map(req => ({ ...req, time: timestamp, userName }));
         userRequests[userId].push(requestArray);
 
         fs.writeFileSync(userRequestsFile, JSON.stringify(userRequests, null, 2));
