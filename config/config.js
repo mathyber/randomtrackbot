@@ -12,7 +12,7 @@ const config = {
     PORT: 3000,
     ANTI_CLASSIC_MAX_LENGTH_TITLE_FILTER: 45,
     SERVER_IP: '38.180.222.180',
-    ADMIN_TELEGRAM_ID: '350161289'
+    ADMIN_TELEGRAM_ID: '1422537077'
 };
 
 module.exports = config;
