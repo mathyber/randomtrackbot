@@ -55,7 +55,7 @@ const fetchTrack = async (ctx, { year, tag, genre, onlyLongTitle = false }, getU
     const lastTime = lastRequestTime.get(userId) || 0;
 
     if (now - lastTime < 1000) {
-        return ctx.reply('Слишком быстро! Подожди секунду.', { parse_mode: 'HTML' });
+        return ctx.reply('Слишком быстро! Подожди секунду', { parse_mode: 'HTML' });
     }
     lastRequestTime.set(userId, now);
 
