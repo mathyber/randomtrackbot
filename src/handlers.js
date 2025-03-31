@@ -214,7 +214,7 @@ function setupHandlers(bot, { getUserToken, removeUserToken }) {
             const {isError, message} = await pauseTrack(token);
 
             if (searchingMessage) await ctx.telegram.deleteMessage(ctx.chat.id, searchingMessage.message_id).catch(() => {});
-
+console.log(isError, message, isFromButton)
             if (!isError && isFromButton) {
                 await ctx.answerCbQuery(message);
             } else {
