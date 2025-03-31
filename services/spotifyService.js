@@ -132,7 +132,34 @@ async function findSongFromAlbumSpotify({ q, offset }) {
     }
 }
 
+async function messageWithErrors(func, {name = 'Error', errorText = 'Ошибка'}) {
+    let message, isError = false;
+    try {
+        const setMessage = (str, flag) => {
+            message = str;
+            isError = flag;
+        }
+        await func(setMessage);
+    } catch (error) {
+        console.error(`${name}: `, error.response?.data || error.message);
+        const errorMsg = error.response?.data?.error?.message || 'error';
+        message = `${errorText}: ${errorMsg}`;
+        isError = true;
+    }
+
+    return {
+        isError,
+        message
+    }
+}
+
 async function playTrack(token, targetTrackId, positionMs, args) {
+
+    // messageWithErrors(null, {
+    //     name: 'Play',
+    //     errorText: 'Ошибка воспроизведения'
+    // })
+
     let message, isError = false;
     try {
         const devicesResponse = await axios.get('https://api.spotify.com/v1/me/player/devices', {
@@ -199,27 +226,23 @@ async function pauseTrack(token) {
     }
 }
 
+const like = async (targetTrackId, token, setMessage) => {
+    await axios.put(`https://api.spotify.com/v1/me/tracks`, {
+        ids: [targetTrackId],
+    }, {
+        headers: {Authorization: `Bearer ${token}`},
+    });
+    setMessage && setMessage('Трек добавлен в любимые', false);
+}
+
 async function likeTrack(token, targetTrackId) {
-    let message, isError = false;
-    try {
-        await axios.put(`https://api.spotify.com/v1/me/tracks`, {
-            ids: [targetTrackId],
-        }, {
-            headers: { Authorization: `Bearer ${token}` },
-        });
-
-        message = 'Трек добавлен в любимые';
-    } catch (error) {
-        console.error('Like Error:', error.response?.data || error.message);
-        const errorMsg = error.response?.data?.error?.message || 'Не получилось лайкнуть.';
-        message = `Ошибка добавления в любимые: ${errorMsg}`;
-        isError = true;
-    }
-
-    return {
-        isError,
-        message
-    }
+    return await messageWithErrors(
+        (setMessage) => like(targetTrackId, token, setMessage),
+        {
+            name: 'Like',
+            errorText: 'Ошибка добавления в любимые'
+        }
+    )
 }
 
 async function authService(userId) {
