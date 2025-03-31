@@ -167,4 +167,36 @@ async function playTrack(token, targetTrackId, positionMs, args) {
     }
 }
 
-module.exports = { findSongSpotify, findSongFromAlbumSpotify, playTrack };
+async function pauseTrack(token) {
+    let message, isError = false;
+    try {
+        const devicesResponse = await axios.get('https://api.spotify.com/v1/me/player/devices', {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+        const devices = devicesResponse.data.devices;
+        const activeDevice = devices.find(device => device.is_active);
+
+        if (!activeDevice) {
+            message = 'Не нашёл активных устройств. Открой Spotify где-нибудь и попробуй снова.';
+            isError = true;
+        } else {
+            await axios.put('https://api.spotify.com/v1/me/player/pause', {}, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+
+            message = `Поставили на паузу на ${activeDevice.name}!`;
+        }
+    } catch (error) {
+        console.error('Play Error:', error.response?.data || error.message);
+        const errorMsg = error.response?.data?.error?.message || 'Не получилось запустить.';
+        message = `Ошибка паузы: ${errorMsg} Попробуй открыть Spotify и проверить активное устройство.`;
+        isError = true;
+    }
+
+    return {
+        isError,
+        message
+    }
+}
+
+module.exports = { findSongSpotify, findSongFromAlbumSpotify, playTrack, pauseTrack };

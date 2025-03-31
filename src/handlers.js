@@ -19,7 +19,7 @@ const {
 const path = require('path');
 const axios = require('axios');
 const {COMMANDS, ALL_COMMANDS_TEXT, DESCRIPTION, currentYear, pageSize} = require("../const/const");
-const {playTrack} = require("../services/spotifyService");
+const {playTrack, pauseTrack} = require("../services/spotifyService");
 const pngLogo = path.join(__dirname, '../files/1.png');
 const lastRequestTime = new Map();
 
@@ -211,37 +211,17 @@ function setupHandlers(bot, { getUserToken, removeUserToken }) {
             searchingMessage = await ctx.reply('Проверяем активное устройство... ⏳', { parse_mode: 'HTML' });
         }
         try {
-            const devicesResponse = await axios.get('https://api.spotify.com/v1/me/player/devices', {
-                headers: { Authorization: `Bearer ${token}` },
-            });
-            const devices = devicesResponse.data.devices;
+            const {isError, message} = await pauseTrack(token);
 
-            const activeDevice = devices.find(device => device.is_active);
-            if (!activeDevice) {
-                if (searchingMessage) await ctx.telegram.deleteMessage(ctx.chat.id, searchingMessage.message_id).catch(() => {});
-                return ctx.reply('Не нашёл активных устройств. Открой Spotify где-нибудь.', { parse_mode: 'HTML' });
-            }
+            if (searchingMessage) await ctx.telegram.deleteMessage(ctx.chat.id, searchingMessage.message_id).catch(() => {});
 
-            await axios.put('https://api.spotify.com/v1/me/player/pause', {}, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
-
-            if (isFromButton) {
-                await ctx.answerCbQuery('Пауза');
-            } else if (searchingMessage) {
-                try {
-                    await ctx.telegram.deleteMessage(ctx.chat.id, searchingMessage.message_id);
-                    await ctx.reply(`Поставили на паузу на ${activeDevice.name}!`, { parse_mode: 'HTML' });
-                } catch (telegramError) {
-                    console.error('Telegram Error after pause:', telegramError);
-                    await ctx.reply('Пауза сработала, но что-то пошло не так с сообщением.', { parse_mode: 'HTML' });
-                }
+            if (!isError && isFromButton) {
+                await ctx.answerCbQuery(`Пауза`);
+            } else {
+                await ctx.reply(message, { parse_mode: 'HTML' });
             }
         } catch (error) {
-            console.error('Pause Error:', error.response?.data || error.message);
-            if (searchingMessage) await ctx.telegram.deleteMessage(ctx.chat.id, searchingMessage.message_id).catch(() => {});
-            const errorMsg = error.response?.data?.error?.message || 'Не получилось поставить на паузу.';
-            return ctx.reply(`Ошибка паузы: ${errorMsg} Попробуй открыть Spotify и проверить активное устройство.`, { parse_mode: 'HTML' });
+            console.error(error);
         }
     };
 
