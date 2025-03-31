@@ -137,7 +137,7 @@ async function messageWithErrors(func, {name = 'Error', errorText = 'Ошибк�
     try {
         const setMessage = (str, flag) => {
             message = str;
-            isError = flag;
+            isError = flag || false;
         }
         await func(setMessage);
     } catch (error) {
@@ -161,10 +161,7 @@ const play = async (token, targetTrackId, positionMs, args, setMessage) => {
     const activeDevice = devices.find(device => device.is_active);
 
     if (!activeDevice) {
-        setMessage && setMessage(
-            'Не нашёл активных устройств. Открой Spotify где-нибудь и попробуй снова.',
-            true
-        )
+        setMessage && setMessage('Не нашёл активных устройств. Открой Spotify где-нибудь и попробуй снова.')
     } else {
         await axios.put('https://api.spotify.com/v1/me/player/play', {
             uris: [`spotify:track:${targetTrackId}`],
@@ -172,11 +169,7 @@ const play = async (token, targetTrackId, positionMs, args, setMessage) => {
         }, {
             headers: { Authorization: `Bearer ${token}` },
         });
-
-        setMessage && setMessage(
-            `Запускаем трек на ${activeDevice.name} с ${args || 'начала'}`,
-            true
-        )
+        setMessage && setMessage(`Запускаем трек на ${activeDevice.name} с ${args || 'начала'}`)
     }
 }
 
@@ -197,19 +190,12 @@ const pause = async (token, setMessage) => {
     const activeDevice = devices.find(device => device.is_active);
 
     if (!activeDevice) {
-        setMessage && setMessage(
-            'Не нашёл активных устройств. Открой Spotify где-нибудь и попробуй снова.',
-            true
-        )
+        setMessage && setMessage('Не нашёл активных устройств. Открой Spotify где-нибудь и попробуй снова.')
     } else {
         await axios.put('https://api.spotify.com/v1/me/player/pause', {}, {
             headers: { Authorization: `Bearer ${token}` },
         });
-
-        setMessage && setMessage(
-            `Поставили на паузу на ${activeDevice.name}`,
-            true
-        )
+        setMessage && setMessage(`Поставили на паузу на ${activeDevice.name}`)
     }
 }
 
