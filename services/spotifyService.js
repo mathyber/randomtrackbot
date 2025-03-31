@@ -79,25 +79,13 @@ async function findSongFromAlbumSpotify({ q, offset }) {
     }
 
     try {
-        let albumResponse = null;
-        let attempts = 0;
-        const maxAttempts = 5; // Ограничение попыток
+        const albumResponse = await axios.get(`https://api.spotify.com/v1/search`, {
+            headers: { Authorization: `Bearer ${accessToken}` },
+            params: { q, type: 'album', limit: 1, offset },
+            responseType: 'json',
+        });
 
-        while (!albumResponse?.data?.albums?.items?.length && attempts < maxAttempts) {
-            albumResponse = await axios.get(`https://api.spotify.com/v1/search`, {
-                headers: { Authorization: `Bearer ${accessToken}` },
-                params: { q, type: 'album', limit: 1, offset },
-                responseType: 'json',
-            });
-            if (!albumResponse?.data?.albums?.items?.length) {
-                console.log(`No albums found (q=${q}, offset=${offset}), attempt ${attempts + 1}`);
-                offset = getOffset();
-                attempts++;
-            }
-        }
-
-        if (attempts >= maxAttempts) {
-            console.log(`Failed to find album after ${maxAttempts} attempts (q=${q})`);
+        if (!albumResponse?.data?.albums?.items?.length) {
             return null;
         }
 
