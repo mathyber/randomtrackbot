@@ -175,7 +175,7 @@ function setupHandlers(bot, { getUserToken, removeUserToken }) {
         if (!isFromButton) {
             searchingMessage = await ctx.reply('Проверяем активное устройство... ⏳', { parse_mode: 'HTML' });
         }
-        try {
+
             const {isError, message} = await playTrack(token, targetTrackId, positionMs, args);
 
             if (searchingMessage) await ctx.telegram.deleteMessage(ctx.chat.id, searchingMessage.message_id).catch(() => {});
@@ -187,9 +187,7 @@ function setupHandlers(bot, { getUserToken, removeUserToken }) {
                     await ctx.reply(message, { parse_mode: 'HTML' });
                 }
             }
-        } catch (error) {
-            console.error(error);
-        }
+
     };
 
     const play = async (ctx, isFromButton = false, trackId = null) => {
