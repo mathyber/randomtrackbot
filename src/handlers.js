@@ -190,8 +190,7 @@ function setupHandlers(bot, { getUserToken, removeUserToken }) {
         try {
             const {isError, message} = await func(token, targetTrackId, positionMs, args);
 
-            if (searchingMessage) await ctx.telegram.deleteMessage(ctx.chat.id, searchingMessage.message_id).catch(() => {
-            });
+            if (searchingMessage) await ctx.telegram.deleteMessage(ctx.chat.id, searchingMessage.message_id).catch(() => {});
 
             if (!isError && isFromButton) {
                 await ctx.answerCbQuery(message);

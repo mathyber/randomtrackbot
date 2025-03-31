@@ -172,7 +172,7 @@ const play = async (token, targetTrackId, positionMs, args, setMessage) => {
     const {name, error} = await getActiveDevice(token);
     
     if (error) {
-        setMessage && setMessage(error);
+        setMessage && setMessage(error, true);
     } else {
         await axios.put('https://api.spotify.com/v1/me/player/play', {
             uris: [`spotify:track:${targetTrackId}`],
