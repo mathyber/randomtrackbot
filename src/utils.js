@@ -87,10 +87,6 @@ ${data?.length ? `<i>страница ${page + 1}/${Math.ceil(data.length / page
     }
 }
 
-function getRandomOffset() {
-    return Math.floor(Math.random() * 1000);
-}
-
 function getOffset(queryLength) {
     const offsetConfig = {
         lengthThreshold: 4,      // Порог длины строки (от 4 символов)

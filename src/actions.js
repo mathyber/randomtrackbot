@@ -6,6 +6,33 @@ const config = require("../config/config");
 const {findSongYouTubeByIsrc} = require("../services/youtubeService");
 const lastRequestTime = new Map();
 
+const serviceAction = async (ctx, getUserToken, isFromButton, func, targetTrackId, positionMs, args) => {
+    const userId = Number(ctx.from.id);
+    const token = await getUserToken(userId);
+
+    if (!token) {
+        return auth(ctx);
+    }
+
+    let searchingMessage = null;
+    if (!isFromButton) {
+        searchingMessage = await ctx.reply('Проверяем активное устройство... ⏳', {parse_mode: 'HTML'});
+    }
+    try {
+        const {isError, message} = await func(token, targetTrackId, positionMs, args);
+
+        if (searchingMessage) await ctx.telegram.deleteMessage(ctx.chat.id, searchingMessage.message_id).catch(() => {});
+
+        if (!isError && isFromButton) {
+            await ctx.answerCbQuery(message);
+        } else {
+            await ctx.reply(message, {parse_mode: 'HTML'});
+        }
+    } catch (error) {
+        console.error(error);
+    }
+}
+
 const getTargetTrackId = async (ctx, isFromButton, trackId) => {
     const userId = Number(ctx.from.id);
     let targetTrackId = trackId;
@@ -98,6 +125,12 @@ const fetchTrack = async (ctx, { year, tag, genre, onlyLongTitle = false }, getU
     }
 };
 
+const genre = async (ctx, getUserToken) => {
+    const genre = parseCommandArgs(ctx);
+    if (!genre) return ctx.reply('Укажи жанр, например /genre rock', { parse_mode: 'HTML' });
+    await fetchTrack(ctx, { genre }, getUserToken);
+}
+
 const playSong = async (getUserToken, isPlayFrom = false, ctx, isFromButton = false, trackId = null, time) => {
     const args = isPlayFrom ? (time || ctx.message.text.split(' ').slice(1).join('')) : null;
     const targetTrackId = await getTargetTrackId(ctx, isFromButton, trackId);
@@ -123,33 +156,6 @@ const play = async (ctx, getUserToken, isFromButton = false, trackId = null) => 
 const playFrom = async (ctx, getUserToken, isFromButton = false, trackId = null, time) => {
     await playSong(getUserToken, true, ctx, isFromButton, trackId, time);
 };
-
-const serviceAction = async (ctx, getUserToken, isFromButton, func, targetTrackId, positionMs, args) => {
-    const userId = Number(ctx.from.id);
-    const token = await getUserToken(userId);
-
-    if (!token) {
-        return auth(ctx);
-    }
-
-    let searchingMessage = null;
-    if (!isFromButton) {
-        searchingMessage = await ctx.reply('Проверяем активное устройство... ⏳', {parse_mode: 'HTML'});
-    }
-    try {
-        const {isError, message} = await func(token, targetTrackId, positionMs, args);
-
-        if (searchingMessage) await ctx.telegram.deleteMessage(ctx.chat.id, searchingMessage.message_id).catch(() => {});
-
-        if (!isError && isFromButton) {
-            await ctx.answerCbQuery(message);
-        } else {
-            await ctx.reply(message, {parse_mode: 'HTML'});
-        }
-    } catch (error) {
-        console.error(error);
-    }
-}
 
 const pause = async (ctx, getUserToken, isFromButton = false) => {
     return await serviceAction(ctx, getUserToken, isFromButton, pauseTrack);
@@ -229,16 +235,6 @@ const lastRequests = (ctx) => {
     return ctx.reply(getLastRequestsText(lastRequestData), { parse_mode: 'HTML' });
 }
 
-const info = (ctx) => {
-    return ctx.replyWithPhoto(
-        { source: pngLogo },
-        {
-            caption: getInfo(),
-            parse_mode: 'HTML'
-        }
-    )
-}
-
 const botUsers = (ctx, pageStr) => {
     const page = Number(pageStr || 0);
     if (isNaN(page)) {
@@ -271,12 +267,6 @@ const botUsers = (ctx, pageStr) => {
         console.error(e);
         return ctx.reply('Ошибка', { parse_mode: 'HTML' });
     }
-}
-
-const genre = async (ctx, getUserToken) => {
-    const genre = parseCommandArgs(ctx);
-    if (!genre) return ctx.reply('Укажи жанр, например /genre rock', { parse_mode: 'HTML' });
-    await fetchTrack(ctx, { genre }, getUserToken);
 }
 
 const premium = (ctx) => {
@@ -336,6 +326,16 @@ const morePlay = async (ctx, getUserToken, isPlayFrom) => {
         await play(ctx, getUserToken, true);
     }
 };
+
+const info = (ctx) => {
+    return ctx.replyWithPhoto(
+        { source: pngLogo },
+        {
+            caption: getInfo(),
+            parse_mode: 'HTML'
+        }
+    )
+}
 
 module.exports = {
     morePlay,

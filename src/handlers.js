@@ -36,41 +36,66 @@ function setupHandlers(bot, { getUserToken, removeUserToken }) {
         premium
     };
 
+    const actions = [
+        {
+            action: /^botusers_(.+)$/,
+            handler: (ctx) => {
+                const [_, pageStr] = ctx.match;
+                botUsers(ctx, pageStr)
+            }
+        },
+        {
+            action: /^more_(.+)_([^_]+)$/,
+            handler: (ctx) => more(ctx, getUserToken)
+        },
+        {
+            action: /^moreplay_(.+)_([^_]+)$/,
+            handler: (ctx) => morePlay(ctx, getUserToken)
+        },
+        {
+            action: /^moreplayfrom_(.+)_([^_]+)$/,
+            handler: (ctx) => morePlay(ctx, getUserToken, true)
+        },
+        {
+            action: /^play_(.+)$/,
+            handler: async (ctx) => {
+                const trackId = ctx.match[1];
+                await play(ctx, getUserToken, true, trackId);
+            }
+        },
+        {
+            action: /^playfrom_(.+)$/,
+            handler: async (ctx) => {
+                const trackId = ctx.match[1];
+                await playFrom(ctx, getUserToken, true, trackId, '1:00');
+            }
+        },
+        {
+            action: /^pause_(.+)$/,
+            handler: async (ctx) => {
+                await pause(ctx, getUserToken, true);
+            }
+        },
+        {
+            action: /^like_(.+)$/,
+            handler: async (ctx) => {
+                const trackId = ctx.match[1];
+                await like(ctx, getUserToken, true, trackId);
+            }
+        },
+        {
+            action: 'activate_premium',
+            handler: activatePrem
+        },
+    ]
+
     Object.entries(commands).forEach(([cmd, handler]) => {
         bot.command(cmd, handler);
     });
 
-    bot.action(/^botusers_(.+)$/, (ctx) => {
-        const [_, pageStr] = ctx.match;
-        botUsers(ctx, pageStr)
-    });
-
-    bot.action(/^more_(.+)_([^_]+)$/, (ctx) => more(ctx, getUserToken));
-
-    bot.action(/^moreplay_(.+)_([^_]+)$/, (ctx) => morePlay(ctx, getUserToken));
-
-    bot.action(/^moreplayfrom_(.+)_([^_]+)$/, (ctx) => morePlay(ctx, getUserToken, true));
-
-    bot.action('activate_premium', activatePrem);
-
-    bot.action(/^play_(.+)$/, async (ctx) => {
-        const trackId = ctx.match[1];
-        await play(ctx, getUserToken, true, trackId);
-    });
-
-    bot.action(/^playfrom_(.+)$/, async (ctx) => {
-        const trackId = ctx.match[1];
-        await playFrom(ctx, getUserToken, true, trackId, '1:00');
-    });
-
-    bot.action(/^pause_(.+)$/, async (ctx) => {
-        await pause(ctx, getUserToken, true);
-    });
-
-    bot.action(/^like_(.+)$/, async (ctx) => {
-        const trackId = ctx.match[1];
-        await like(ctx, getUserToken, true, trackId);
-    });
+    actions.forEach(({action, handler}) => {
+        bot.action(action, handler);
+    })
 
     bot.on('text', (ctx) => {
         allBtns(ctx, getAllCommands());
