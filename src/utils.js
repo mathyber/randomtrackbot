@@ -1,7 +1,7 @@
 const config = require("../config/config");
 const { saveUserRequest } = require("../storage/jsonStorage");
 const { findSongSpotify, findSongFromAlbumSpotify } = require("../services/spotifyService");
-const {ALL_COMMANDS_TEXT, DESCRIPTION, pageSize, currentYear, COMMANDS, pngLogo} = require("../const/const");
+const {ALL_COMMANDS_TEXT, DESCRIPTION, pageSize, currentYear, COMMANDS, pngLogo, tags} = require("../const/const");
 
 function formatDate(dateString) {
     const [year, month, day] = dateString.split("-").map(Number);
@@ -198,14 +198,12 @@ function generateRandomSpotifyQuery(year, tag, genre) {
 
     const offset = getOffset(q.length); // Передаём длину строки
 
-    const tags = ['hipster', 'new'];
-
     if (q.length <= 3) {
         if (!tag && Math.random() < 0.3) {
             q += ` tag:${(Math.random() < 0.8) ? tags[0] : tags[1]}`;
         }
 
-        if (!tag && Math.random() < 0.4 && !q.includes('tag:new') && !genre && !year) {
+        if (!tag && Math.random() < 0.4 && !q.includes(`tag:${tags[1]}`) && !genre && !year) {
             q += ` year:${getRandomWeightedYear()}`;
         }
     }
@@ -245,7 +243,9 @@ async function getRandomTrack(ctx, year, tag, genre, onlyLongTitle = false) {
 
     while ((!spotifyData?.img || lengthFilter(spotifyData?.title?.length)) && (attempts < maxAttempts)) {
         const data = generateRandomSpotifyQuery(year, tag, genre);
-        spotifyData = tag ? await findSongFromAlbumSpotify(data) : await findSongSpotify(data);
+        spotifyData = (tag || !!tags.find(t => data.q.includes(`tag:${t}`)))
+            ? await findSongFromAlbumSpotify(data)
+            : await findSongSpotify(data);
         attempts++;
 
         const logHistory = {

@@ -32,7 +32,8 @@ const COMMANDS = [
 const ALL_COMMANDS_TEXT = COMMANDS.map(c => `${c.cmd} - ${c.description}`).join('\n');
 const pageSize = 10;
 const pngLogo = path.join(__dirname, '../files/1.png');
+const tags = ['hipster', 'new'];
 
 module.exports = {
-    DESCRIPTION, ALL_COMMANDS_TEXT, COMMANDS, COMMANDS_ALL, currentYear, pageSize, pngLogo
+    DESCRIPTION, ALL_COMMANDS_TEXT, COMMANDS, COMMANDS_ALL, currentYear, pageSize, pngLogo, tags
 }

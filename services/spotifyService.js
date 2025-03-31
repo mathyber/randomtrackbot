@@ -1,6 +1,5 @@
 const axios = require('axios');
 const config = require('../config/config');
-const {getOffset} = require("../src/utils");
 
 let accessToken = null;
 let tokenExpiration = 0;
