@@ -320,47 +320,28 @@ function setupHandlers(bot, { getUserToken, removeUserToken }) {
     }
 
     const commands = {
-        track: {
-            handler: (ctx) => fetchTrack(ctx, {}, getUserToken),
-            description: 'рандомный трек',
-        },
-        fresh: {
-            handler: (ctx) => fetchTrack(ctx, { year: currentYear }, getUserToken),
-            description: `рандомный трек ${currentYear} года`,
-        },
-        ultra_fresh: {
-            handler: (ctx) => fetchTrack(ctx, { tag: 'new' }, getUserToken),
-            description: 'рандомный трек за последние две недели',
-        },
-        hipster: {
-            handler: (ctx) => fetchTrack(ctx, { tag: 'hipster' }, getUserToken),
-            description: 'рандомный трек с низкой популярностью',
-        },
-        genre: {
-            handler: async (ctx) => {
+        track: (ctx) => fetchTrack(ctx, {}, getUserToken),
+        fresh: (ctx) => fetchTrack(ctx, { year: currentYear }, getUserToken),
+        ultra_fresh: (ctx) => fetchTrack(ctx, { tag: 'new' }, getUserToken),
+        hipster: (ctx) => fetchTrack(ctx, { tag: 'hipster' }, getUserToken),
+        genre: async (ctx) => {
                 const genre = parseCommandArgs(ctx);
                 if (!genre) return ctx.reply('Укажи жанр, например /genre rock', { parse_mode: 'HTML' });
                 await fetchTrack(ctx, { genre }, getUserToken);
             },
-            description: 'рандомный трек в указанном жанре, например /genre rock',
-        },
-        long_title: {
-            handler: (ctx) => fetchTrack(ctx, {onlyLongTitle: true}, getUserToken),
-            description: 'рандомный трек c длинным названием (рофлофункция - показать засилие бесконечной классики)',
-        },
-        play: { handler: (ctx) => play(ctx) },
-        playfrom: { handler: (ctx) => playFrom(ctx) },
-        pause: { handler: (ctx) => pause(ctx) },
-        like: { handler: (ctx) => like(ctx) },
-        auth: { handler: auth },
-        logout: { handler: logout },
-        last_requests: { handler: lastRequests },
-        bot_users: { handler: (ctx) => botUsers(ctx) },
-        // bot_users_r: { handler: (ctx) => botUsers(ctx, true) },
-        info: { handler: info },
+        long_title: (ctx) => fetchTrack(ctx, {onlyLongTitle: true}, getUserToken),
+        play: (ctx) => play(ctx),
+        playfrom: (ctx) => playFrom(ctx),
+        pause: (ctx) => pause(ctx),
+        like: (ctx) => like(ctx),
+        bot_users: (ctx) => botUsers(ctx),
+        auth: auth,
+        logout: logout,
+        last_requests: lastRequests,
+        info: info,
     };
 
-    Object.entries(commands).forEach(([cmd, { handler }]) => {
+    Object.entries(commands).forEach(([cmd, handler]) => {
         bot.command(cmd, handler);
     });
 
