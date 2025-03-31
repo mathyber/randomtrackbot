@@ -161,7 +161,7 @@ const getActiveDevice = async (token) => {
     const activeDevice = devices.find(device => device.is_active);
 
     return {
-        name: activeDevice,
+        name: activeDevice?.name,
         error: !activeDevice
             ? 'Не нашёл активных устройств. Открой Spotify где-нибудь и попробуй снова.'
             : false
