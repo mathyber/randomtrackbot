@@ -11,7 +11,7 @@ const serviceAction = async (ctx, getUserToken, isFromButton, func, targetTrackI
     const token = await getUserToken(userId);
 
     if (!token) {
-        return auth(ctx);
+        return auth(ctx, getUserToken);
     }
 
     let searchingMessage = null;
@@ -166,7 +166,7 @@ const like = async (ctx, getUserToken, isFromButton = false, trackId = null) => 
     const token = await getUserToken(userId);
 
     if (!token) {
-        return auth(ctx);
+        return auth(ctx, getUserToken);
     }
 
     const targetTrackId = await getTargetTrackId(ctx, isFromButton, trackId);
