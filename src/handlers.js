@@ -319,22 +319,24 @@ function setupHandlers(bot, { getUserToken, removeUserToken }) {
         }
     }
 
+    const genre = async (ctx) => {
+        const genre = parseCommandArgs(ctx);
+        if (!genre) return ctx.reply('Укажи жанр, например /genre rock', { parse_mode: 'HTML' });
+        await fetchTrack(ctx, { genre }, getUserToken);
+    }
+
     const commands = {
         track: (ctx) => fetchTrack(ctx, {}, getUserToken),
         fresh: (ctx) => fetchTrack(ctx, { year: currentYear }, getUserToken),
         ultra_fresh: (ctx) => fetchTrack(ctx, { tag: 'new' }, getUserToken),
         hipster: (ctx) => fetchTrack(ctx, { tag: 'hipster' }, getUserToken),
-        genre: async (ctx) => {
-                const genre = parseCommandArgs(ctx);
-                if (!genre) return ctx.reply('Укажи жанр, например /genre rock', { parse_mode: 'HTML' });
-                await fetchTrack(ctx, { genre }, getUserToken);
-            },
         long_title: (ctx) => fetchTrack(ctx, {onlyLongTitle: true}, getUserToken),
         play: (ctx) => play(ctx),
         playfrom: (ctx) => playFrom(ctx),
         pause: (ctx) => pause(ctx),
         like: (ctx) => like(ctx),
         bot_users: (ctx) => botUsers(ctx),
+        genre: genre,
         auth: auth,
         logout: logout,
         last_requests: lastRequests,
