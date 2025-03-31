@@ -6,7 +6,8 @@ const {
     isPremium,
     premiumUntil,
     activatePremium,
-    getLastUserRequests, allUsers
+    getLastUserRequests,
+    allUsers
 } = require('../storage/jsonStorage');
 const config = require('../config/config');
 const {
@@ -17,9 +18,8 @@ const {
     usersAll
 } = require("./utils");
 const path = require('path');
-const axios = require('axios');
 const {COMMANDS, ALL_COMMANDS_TEXT, DESCRIPTION, currentYear, pageSize} = require("../const/const");
-const {playTrack, pauseTrack, likeTrack} = require("../services/spotifyService");
+const {playTrack, pauseTrack, likeTrack, authService} = require("../services/spotifyService");
 const pngLogo = path.join(__dirname, '../files/1.png');
 const lastRequestTime = new Map();
 
@@ -263,9 +263,10 @@ function setupHandlers(bot, { getUserToken, removeUserToken }) {
             return ctx.reply('Ты уже авторизован', { parse_mode: 'HTML' });
         }
 
-        const authUrl = `https://accounts.spotify.com/authorize?client_id=${config.SPOTIFY_CLIENT_ID}&response_type=code&redirect_uri=https://${config.SERVER_URL}:${config.PORT}/callback&scope=user-read-playback-state+user-modify-playback-state+user-library-modify&state=${userId}`;
+        const {authUrl, text} = await authService(userId);
+
         return ctx.reply(
-            'Авторизуйся в Spotify (нужен премиум):',
+            text || 'Авторизуйся',
             {
                 parse_mode: 'HTML',
                 reply_markup: {
@@ -280,12 +281,12 @@ function setupHandlers(bot, { getUserToken, removeUserToken }) {
         const token = await getUserToken(userId);
 
         if (!token) {
-            return ctx.reply('Ты и так не авторизован в Spotify.', { parse_mode: 'HTML' });
+            return ctx.reply('Ты и так не авторизован', { parse_mode: 'HTML' });
         }
 
         const removed = removeUserToken(userId);
         if (removed) {
-            return ctx.reply('Ты успешно вышел из аккаунта Spotify!', { parse_mode: 'HTML' });
+            return ctx.reply('Ты успешно вышел из аккаунта музыкального сервиса', { parse_mode: 'HTML' });
         } else {
             return ctx.reply('Что-то пошло не так при выходе. Попробуй снова.', { parse_mode: 'HTML' });
         }

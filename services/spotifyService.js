@@ -222,4 +222,12 @@ async function likeTrack(token, targetTrackId) {
     }
 }
 
-module.exports = { findSongSpotify, findSongFromAlbumSpotify, playTrack, pauseTrack, likeTrack };
+async function authService(userId) {
+    const authUrl = `https://accounts.spotify.com/authorize?client_id=${config.SPOTIFY_CLIENT_ID}&response_type=code&redirect_uri=https://${config.SERVER_URL}:${config.PORT}/callback&scope=user-read-playback-state+user-modify-playback-state+user-library-modify&state=${userId}`;
+    const text = 'Авторизуйся в Spotify (нужен премиум):';
+    return {
+        authUrl, text
+    }
+}
+
+module.exports = { findSongSpotify, findSongFromAlbumSpotify, playTrack, pauseTrack, likeTrack, authService };
