@@ -1,4 +1,5 @@
 const config = require("../config/config");
+const path = require("path");
 const currentYear = new Date().getFullYear();
 const DESCRIPTION = `Установленное ограничение на количество запросов в день: ${config.GLOBAL_LIMIT}`;
 const COMMANDS_ALL = [
@@ -30,7 +31,8 @@ const COMMANDS = [
 ]
 const ALL_COMMANDS_TEXT = COMMANDS.map(c => `${c.cmd} - ${c.description}`).join('\n');
 const pageSize = 10;
+const pngLogo = path.join(__dirname, '../files/1.png');
 
 module.exports = {
-    DESCRIPTION, ALL_COMMANDS_TEXT, COMMANDS, COMMANDS_ALL, currentYear, pageSize
+    DESCRIPTION, ALL_COMMANDS_TEXT, COMMANDS, COMMANDS_ALL, currentYear, pageSize, pngLogo
 }

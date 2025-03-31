@@ -1,7 +1,7 @@
 const config = require("../config/config");
 const { saveUserRequest } = require("../storage/jsonStorage");
 const { findSongSpotify, findSongFromAlbumSpotify } = require("../services/spotifyService");
-const {ALL_COMMANDS_TEXT, DESCRIPTION, pageSize, currentYear} = require("../const/const");
+const {ALL_COMMANDS_TEXT, DESCRIPTION, pageSize, currentYear, COMMANDS, pngLogo} = require("../const/const");
 
 function formatDate(dateString) {
     const [year, month, day] = dateString.split("-").map(Number);
@@ -272,4 +272,42 @@ async function getRandomTrack(ctx, year, tag, genre, onlyLongTitle = false) {
     return spotifyData;
 }
 
-module.exports = { getOffset, getPostTrackResult, generateRandomSpotifyQuery, getRandomTrack, getLastRequestsText, getInfo, usersAll, getAllCommands };
+const parseCommandArgs = (ctx) => {
+    const text = ctx.message?.text?.trim();
+    if (!text) return null;
+    const args = text.split(' ').slice(1).join(' ').trim();
+    if (!args) return null;
+    return args.replace(/\s+/g, '+');
+};
+
+const allBtns = (ctx, txt, withImg) => {
+    const text = txt || 'выбери следующее действие:';
+    const cmds = COMMANDS.map(c => c.cmd);
+    const params = {
+        parse_mode: 'HTML',
+        reply_markup: {
+            keyboard: [
+                [cmds[0], cmds[3]],
+                [cmds[1], cmds[2]],
+                [cmds[4], cmds[5]],
+            ],
+            resize_keyboard: true
+        },
+    };
+    return withImg
+        ? ctx.replyWithPhoto({ source: pngLogo }, { caption: text, ...params })
+        : ctx.reply(text, params);
+};
+
+module.exports = {
+    getOffset,
+    getPostTrackResult,
+    generateRandomSpotifyQuery,
+    getRandomTrack,
+    getLastRequestsText,
+    getInfo,
+    usersAll,
+    getAllCommands,
+    parseCommandArgs,
+    allBtns
+};
