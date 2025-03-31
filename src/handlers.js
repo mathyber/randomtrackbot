@@ -241,7 +241,7 @@ function setupHandlers(bot, { getUserToken, removeUserToken }) {
             searchingMessage = await ctx.reply('Добавляем в любимые... ⏳', { parse_mode: 'HTML' });
         }
         try {
-            const {isError, message} = await likeTrack(token);
+            const {isError, message} = await likeTrack(token, targetTrackId);
 
             if (searchingMessage) await ctx.telegram.deleteMessage(ctx.chat.id, searchingMessage.message_id).catch(() => {});
 
