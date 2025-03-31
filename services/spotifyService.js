@@ -153,77 +153,74 @@ async function messageWithErrors(func, {name = 'Error', errorText = 'Ошибк�
     }
 }
 
-async function playTrack(token, targetTrackId, positionMs, args) {
+const play = async (token, targetTrackId, positionMs, args, setMessage) => {
+    const devicesResponse = await axios.get('https://api.spotify.com/v1/me/player/devices', {
+        headers: { Authorization: `Bearer ${token}` },
+    });
+    const devices = devicesResponse.data.devices;
+    const activeDevice = devices.find(device => device.is_active);
 
-    // messageWithErrors(null, {
-    //     name: 'Play',
-    //     errorText: 'Ошибка воспроизведения'
-    // })
-
-    let message, isError = false;
-    try {
-        const devicesResponse = await axios.get('https://api.spotify.com/v1/me/player/devices', {
+    if (!activeDevice) {
+        setMessage && setMessage(
+            'Не нашёл активных устройств. Открой Spotify где-нибудь и попробуй снова.',
+            true
+        )
+    } else {
+        await axios.put('https://api.spotify.com/v1/me/player/play', {
+            uris: [`spotify:track:${targetTrackId}`],
+            position_ms: positionMs,
+        }, {
             headers: { Authorization: `Bearer ${token}` },
         });
-        const devices = devicesResponse.data.devices;
-        const activeDevice = devices.find(device => device.is_active);
 
-        if (!activeDevice) {
-            message = 'Не нашёл активных устройств. Открой Spotify где-нибудь и попробуй снова.';
-            isError = true;
-        } else {
-            await axios.put('https://api.spotify.com/v1/me/player/play', {
-                uris: [`spotify:track:${targetTrackId}`],
-                position_ms: positionMs,
-            }, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
-
-            message = `Запускаем трек на ${activeDevice.name} с ${args || 'начала'}`
-        }
-    } catch (error) {
-        console.error('Play Error:', error.response?.data || error.message);
-        const errorMsg = error.response?.data?.error?.message || 'Не получилось запустить.';
-        message = `Ошибка воспроизведения: ${errorMsg} Попробуй открыть Spotify и проверить активное устройство.`;
-        isError = true;
+        setMessage && setMessage(
+            `Запускаем трек на ${activeDevice.name} с ${args || 'начала'}`,
+            true
+        )
     }
+}
 
-    return {
-        isError,
-        message
+async function playTrack(token, targetTrackId, positionMs, args) {
+    return await messageWithErrors(
+        (setMessage) => play(token, targetTrackId, positionMs, args, setMessage),
+        {
+        name: 'Play',
+        errorText: 'Ошибка воспроизведения'
+    })
+}
+
+const pause = async (token, setMessage) => {
+    const devicesResponse = await axios.get('https://api.spotify.com/v1/me/player/devices', {
+        headers: { Authorization: `Bearer ${token}` },
+    });
+    const devices = devicesResponse.data.devices;
+    const activeDevice = devices.find(device => device.is_active);
+
+    if (!activeDevice) {
+        setMessage && setMessage(
+            'Не нашёл активных устройств. Открой Spotify где-нибудь и попробуй снова.',
+            true
+        )
+    } else {
+        await axios.put('https://api.spotify.com/v1/me/player/pause', {}, {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+
+        setMessage && setMessage(
+            `Поставили на паузу на ${activeDevice.name}`,
+            true
+        )
     }
 }
 
 async function pauseTrack(token) {
-    let message, isError = false;
-    try {
-        const devicesResponse = await axios.get('https://api.spotify.com/v1/me/player/devices', {
-            headers: { Authorization: `Bearer ${token}` },
-        });
-        const devices = devicesResponse.data.devices;
-        const activeDevice = devices.find(device => device.is_active);
-
-        if (!activeDevice) {
-            message = 'Не нашёл активных устройств. Открой Spotify где-нибудь и попробуй снова.';
-            isError = true;
-        } else {
-            await axios.put('https://api.spotify.com/v1/me/player/pause', {}, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
-
-            message = `Поставили на паузу на ${activeDevice.name}`;
+    return await messageWithErrors(
+        (setMessage) => pause(token, setMessage),
+        {
+            name: 'Pause',
+            errorText: 'Ошибка паузы'
         }
-    } catch (error) {
-        console.error('Pause Error:', error.response?.data || error.message);
-        const errorMsg = error.response?.data?.error?.message || 'Не получилось поставить на паузу.';
-        message = `Ошибка паузы: ${errorMsg} Попробуй открыть Spotify и проверить активное устройство.`;
-        isError = true;
-    }
-
-    return {
-        isError,
-        message
-    }
+    )
 }
 
 const like = async (targetTrackId, token, setMessage) => {
