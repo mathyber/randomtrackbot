@@ -6,11 +6,25 @@ const {
     getAllCommands, allBtns
 } = require("./utils");
 const {currentYear} = require("../const/const");
-const {morePlay, more, like, pause, playFrom, play, activatePrem, botUsers, premium, info, auth, genre,
-    lastRequests, logout, fetchTrack
+const {
+    morePlay,
+    more,
+    like,
+    pause,
+    playFrom,
+    play,
+    activatePrem,
+    botUsers,
+    premium,
+    info,
+    auth,
+    genre,
+    lastRequests,
+    logout,
+    fetchTrack
 } = require("./actions");
 
-function setupHandlers(bot, { getUserToken, removeUserToken }) {
+function setupHandlers(bot, {getUserToken, removeUserToken}) {
     bot.start((ctx) => {
         const userId = Number(ctx.from.id);
         saveUserRequest(userId, []);
@@ -19,9 +33,9 @@ function setupHandlers(bot, { getUserToken, removeUserToken }) {
 
     const commands = {
         track: (ctx) => fetchTrack(ctx, {}, getUserToken),
-        fresh: (ctx) => fetchTrack(ctx, { year: currentYear }, getUserToken),
-        ultra_fresh: (ctx) => fetchTrack(ctx, { tag: 'new' }, getUserToken),
-        hipster: (ctx) => fetchTrack(ctx, { tag: 'hipster' }, getUserToken),
+        fresh: (ctx) => fetchTrack(ctx, {year: currentYear}, getUserToken),
+        ultra_fresh: (ctx) => fetchTrack(ctx, {tag: 'new'}, getUserToken),
+        hipster: (ctx) => fetchTrack(ctx, {tag: 'hipster'}, getUserToken),
         long_title: (ctx) => fetchTrack(ctx, {onlyLongTitle: true}, getUserToken),
         logout: (ctx) => logout(ctx, getUserToken, removeUserToken),
         play: (ctx) => play(ctx, getUserToken),
@@ -102,4 +116,4 @@ function setupHandlers(bot, { getUserToken, removeUserToken }) {
     });
 }
 
-module.exports = { setupHandlers };
+module.exports = {setupHandlers};
