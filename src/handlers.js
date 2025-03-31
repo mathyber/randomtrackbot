@@ -150,14 +150,7 @@ function setupHandlers(bot, { getUserToken, removeUserToken }) {
     });
 
     const playSong = async (isPlayFrom = false, ctx, isFromButton = false, trackId = null, time) => {
-        const userId = Number(ctx.from.id);
-        const token = await getUserToken(userId);
         const args = isPlayFrom ? (time || ctx.message.text.split(' ').slice(1).join('')) : null;
-
-        if (!token) {
-            return auth(ctx);
-        }
-
         const targetTrackId = await getTargetTrackId(ctx, isFromButton, trackId);
         if (!targetTrackId) return;
 
@@ -171,23 +164,7 @@ function setupHandlers(bot, { getUserToken, removeUserToken }) {
             }
         }
 
-        let searchingMessage = null;
-        if (!isFromButton) {
-            searchingMessage = await ctx.reply('Проверяем активное устройство... ⏳', { parse_mode: 'HTML' });
-        }
-        try {
-            const {isError, message} = await playTrack(token, targetTrackId, positionMs, args);
-
-            if (searchingMessage) await ctx.telegram.deleteMessage(ctx.chat.id, searchingMessage.message_id).catch(() => {});
-
-            if (!isError && isFromButton) {
-                await ctx.answerCbQuery(message);
-            } else {
-                await ctx.reply(message, { parse_mode: 'HTML' });
-            }
-        } catch (error) {
-            console.error(error);
-        }
+        return await serviceAction(ctx, isFromButton, playTrack, targetTrackId, positionMs, args);
     };
 
     const play = async (ctx, isFromButton = false, trackId = null) => {
@@ -198,7 +175,7 @@ function setupHandlers(bot, { getUserToken, removeUserToken }) {
         await playSong(true, ctx, isFromButton, trackId, time);
     };
 
-    const pause = async (ctx, isFromButton = false) => {
+    const serviceAction = async (ctx, isFromButton, func, targetTrackId, positionMs, args) => {
         const userId = Number(ctx.from.id);
         const token = await getUserToken(userId);
 
@@ -208,21 +185,26 @@ function setupHandlers(bot, { getUserToken, removeUserToken }) {
 
         let searchingMessage = null;
         if (!isFromButton) {
-            searchingMessage = await ctx.reply('Проверяем активное устройство... ⏳', { parse_mode: 'HTML' });
+            searchingMessage = await ctx.reply('Проверяем активное устройство... ⏳', {parse_mode: 'HTML'});
         }
         try {
-            const {isError, message} = await pauseTrack(token);
+            const {isError, message} = await func(token, targetTrackId, positionMs, args);
 
-            if (searchingMessage) await ctx.telegram.deleteMessage(ctx.chat.id, searchingMessage.message_id).catch(() => {});
+            if (searchingMessage) await ctx.telegram.deleteMessage(ctx.chat.id, searchingMessage.message_id).catch(() => {
+            });
 
             if (!isError && isFromButton) {
                 await ctx.answerCbQuery(message);
             } else {
-                await ctx.reply(message, { parse_mode: 'HTML' });
+                await ctx.reply(message, {parse_mode: 'HTML'});
             }
         } catch (error) {
             console.error(error);
         }
+    }
+
+    const pause = async (ctx, isFromButton = false) => {
+        return await serviceAction(ctx, isFromButton, pauseTrack);
     };
 
     const like = async (ctx, isFromButton = false, trackId = null) => {
