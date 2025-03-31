@@ -19,6 +19,7 @@ const {
 const path = require('path');
 const axios = require('axios');
 const {COMMANDS, ALL_COMMANDS_TEXT, DESCRIPTION, currentYear, pageSize} = require("../const/const");
+const {playTrack} = require("../services/spotifyService");
 const pngLogo = path.join(__dirname, '../files/1.png');
 const lastRequestTime = new Map();
 
@@ -175,40 +176,20 @@ function setupHandlers(bot, { getUserToken, removeUserToken }) {
             searchingMessage = await ctx.reply('Проверяем активное устройство... ⏳', { parse_mode: 'HTML' });
         }
         try {
-            const devicesResponse = await axios.get('https://api.spotify.com/v1/me/player/devices', {
-                headers: { Authorization: `Bearer ${token}` },
-            });
-            const devices = devicesResponse.data.devices;
+            const {isError, message} = await playTrack(token, targetTrackId, positionMs, args);
 
-            const activeDevice = devices.find(device => device.is_active);
-            if (!activeDevice) {
-                if (searchingMessage) await ctx.telegram.deleteMessage(ctx.chat.id, searchingMessage.message_id).catch(() => {});
-                return ctx.reply('Не нашёл активных устройств. Открой Spotify где-нибудь и попробуй снова.', { parse_mode: 'HTML' });
-            }
+            if (searchingMessage) await ctx.telegram.deleteMessage(ctx.chat.id, searchingMessage.message_id).catch(() => {});
 
-            await axios.put('https://api.spotify.com/v1/me/player/play', {
-                uris: [`spotify:track:${targetTrackId}`],
-                position_ms: positionMs,
-            }, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
-
-            if (isFromButton) {
-                await ctx.answerCbQuery(`Воспроизводится с ${args || 'начала'}`);
-            } else if (searchingMessage) {
-                try {
+            if (!isError) {
+                if (isFromButton) {
+                    await ctx.answerCbQuery(`Воспроизводится с ${args || 'начала'}`);
+                } else if (searchingMessage) {
                     await ctx.telegram.deleteMessage(ctx.chat.id, searchingMessage.message_id);
-                    await ctx.reply(`Запускаем трек на ${activeDevice.name} с ${args || 'начала'}!`, { parse_mode: 'HTML' });
-                } catch (telegramError) {
-                    console.error('Telegram Error after play:', telegramError);
-                    await ctx.reply('Трек запущен, но что-то пошло не так с сообщением.', { parse_mode: 'HTML' });
+                    await ctx.reply(message, { parse_mode: 'HTML' });
                 }
             }
         } catch (error) {
-            console.error('Play Error:', error.response?.data || error.message);
-            if (searchingMessage) await ctx.telegram.deleteMessage(ctx.chat.id, searchingMessage.message_id).catch(() => {});
-            const errorMsg = error.response?.data?.error?.message || 'Не получилось запустить.';
-            return ctx.reply(`Ошибка воспроизведения: ${errorMsg} Попробуй открыть Spotify и проверить активное устройство.`, { parse_mode: 'HTML' });
+            console.error(error);
         }
     };
 
