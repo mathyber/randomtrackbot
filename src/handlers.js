@@ -15,10 +15,11 @@ const {
     getRandomTrack,
     getLastRequestsText,
     getInfo,
-    usersAll
+    usersAll,
+    getAllCommands
 } = require("./utils");
 const path = require('path');
-const {COMMANDS, ALL_COMMANDS_TEXT, DESCRIPTION, currentYear, pageSize} = require("../const/const");
+const {COMMANDS, currentYear, pageSize} = require("../const/const");
 const {playTrack, pauseTrack, likeTrack, authService} = require("../services/spotifyService");
 const pngLogo = path.join(__dirname, '../files/1.png');
 const lastRequestTime = new Map();
@@ -26,7 +27,7 @@ const lastRequestTime = new Map();
 const allBtns = (ctx, txt, withImg) => {
     const text = txt || 'выбери следующее действие:';
     const cmds = COMMANDS.map(c => c.cmd);
-    const btns = {
+    const params = {
         parse_mode: 'HTML',
         reply_markup: {
             keyboard: [
@@ -38,8 +39,8 @@ const allBtns = (ctx, txt, withImg) => {
         },
     };
     return withImg
-        ? ctx.replyWithPhoto({ source: pngLogo }, { caption: text, ...btns })
-        : ctx.reply(text, btns);
+        ? ctx.replyWithPhoto({ source: pngLogo }, { caption: text, ...params })
+        : ctx.reply(text, params);
 };
 
 const parseCommandArgs = (ctx) => {
@@ -359,11 +360,6 @@ function setupHandlers(bot, { getUserToken, removeUserToken }) {
         info: { handler: info },
     };
 
-    bot.action(/^botusers_(.+)$/, (ctx) => {
-        const [_, pageStr] = ctx.match;
-        botUsers(ctx, pageStr)
-    });
-
     Object.entries(commands).forEach(([cmd, { handler }]) => {
         bot.command(cmd, handler);
     });
@@ -409,6 +405,11 @@ function setupHandlers(bot, { getUserToken, removeUserToken }) {
         }
     };
 
+    bot.action(/^botusers_(.+)$/, (ctx) => {
+        const [_, pageStr] = ctx.match;
+        botUsers(ctx, pageStr)
+    });
+
     bot.action(/^more_(.+)_([^_]+)$/, (ctx) => more(ctx));
     bot.action(/^moreplay_(.+)_([^_]+)$/, (ctx) => morePlay(ctx));
     bot.action(/^moreplayfrom_(.+)_([^_]+)$/, (ctx) => morePlay(ctx, true));
@@ -450,11 +451,7 @@ function setupHandlers(bot, { getUserToken, removeUserToken }) {
     });
 
     bot.on('text', (ctx) => {
-        allBtns(ctx, `Все команды: 
-        
-${ALL_COMMANDS_TEXT}
-
-${DESCRIPTION}`);
+        allBtns(ctx, getAllCommands());
     });
 }
 
