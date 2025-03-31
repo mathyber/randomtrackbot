@@ -153,15 +153,26 @@ async function messageWithErrors(func, {name = 'Error', errorText = 'Ошибк�
     }
 }
 
-const play = async (token, targetTrackId, positionMs, args, setMessage) => {
+const getActiveDevice = async (token) => {
     const devicesResponse = await axios.get('https://api.spotify.com/v1/me/player/devices', {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {Authorization: `Bearer ${token}`},
     });
-    const devices = devicesResponse.data.devices;
+    const devices = devicesResponse?.data?.devices;
     const activeDevice = devices.find(device => device.is_active);
 
-    if (!activeDevice) {
-        setMessage && setMessage('Не нашёл активных устройств. Открой Spotify где-нибудь и попробуй снова.')
+    return {
+        name: activeDevice,
+        error: !activeDevice
+            ? 'Не нашёл активных устройств. Открой Spotify где-нибудь и попробуй снова.'
+            : false
+    }
+}
+
+const play = async (token, targetTrackId, positionMs, args, setMessage) => {
+    const {name, error} = await getActiveDevice(token);
+    
+    if (error) {
+        setMessage && setMessage(error);
     } else {
         await axios.put('https://api.spotify.com/v1/me/player/play', {
             uris: [`spotify:track:${targetTrackId}`],
@@ -169,7 +180,7 @@ const play = async (token, targetTrackId, positionMs, args, setMessage) => {
         }, {
             headers: { Authorization: `Bearer ${token}` },
         });
-        setMessage && setMessage(`Запускаем трек на ${activeDevice.name} с ${args || 'начала'}`)
+        setMessage && setMessage(`Запускаем трек на ${name} с ${args || 'начала'}`)
     }
 }
 
@@ -183,19 +194,15 @@ async function playTrack(token, targetTrackId, positionMs, args) {
 }
 
 const pause = async (token, setMessage) => {
-    const devicesResponse = await axios.get('https://api.spotify.com/v1/me/player/devices', {
-        headers: { Authorization: `Bearer ${token}` },
-    });
-    const devices = devicesResponse.data.devices;
-    const activeDevice = devices.find(device => device.is_active);
+    const {name, error} = await getActiveDevice(token);
 
-    if (!activeDevice) {
-        setMessage && setMessage('Не нашёл активных устройств. Открой Spotify где-нибудь и попробуй снова.')
+    if (error) {
+        setMessage && setMessage(error);
     } else {
         await axios.put('https://api.spotify.com/v1/me/player/pause', {}, {
             headers: { Authorization: `Bearer ${token}` },
         });
-        setMessage && setMessage(`Поставили на паузу на ${activeDevice.name}`)
+        setMessage && setMessage(`Поставили на паузу на ${name}`)
     }
 }
 
