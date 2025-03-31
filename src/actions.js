@@ -4,7 +4,6 @@ const {getLastRequestsText, getInfo, usersAll, getRandomTrack, getPostTrackResul
 const {pageSize, currentYear, pngLogo} = require("../const/const");
 const config = require("../config/config");
 const {findSongYouTubeByIsrc} = require("../services/youtubeService");
-const {getUserToken} = require("./bot");
 const lastRequestTime = new Map();
 
 const getTargetTrackId = async (ctx, isFromButton, trackId) => {
@@ -99,7 +98,7 @@ const fetchTrack = async (ctx, { year, tag, genre, onlyLongTitle = false }, getU
     }
 };
 
-const playSong = async (isPlayFrom = false, ctx, isFromButton = false, trackId = null, time) => {
+const playSong = async (getUserToken, isPlayFrom = false, ctx, isFromButton = false, trackId = null, time) => {
     const args = isPlayFrom ? (time || ctx.message.text.split(' ').slice(1).join('')) : null;
     const targetTrackId = await getTargetTrackId(ctx, isFromButton, trackId);
     if (!targetTrackId) return;
@@ -114,18 +113,18 @@ const playSong = async (isPlayFrom = false, ctx, isFromButton = false, trackId =
         }
     }
 
-    return await serviceAction(ctx, isFromButton, playTrack, targetTrackId, positionMs, args);
+    return await serviceAction(ctx, getUserToken, isFromButton, playTrack, targetTrackId, positionMs, args);
 };
 
-const play = async (ctx, isFromButton = false, trackId = null) => {
-    await playSong(false, ctx, isFromButton, trackId);
+const play = async (ctx, getUserToken, isFromButton = false, trackId = null) => {
+    await playSong(getUserToken, false, ctx, isFromButton, trackId);
 };
 
-const playFrom = async (ctx, isFromButton = false, trackId = null, time) => {
-    await playSong(true, ctx, isFromButton, trackId, time);
+const playFrom = async (ctx, getUserToken, isFromButton = false, trackId = null, time) => {
+    await playSong(getUserToken, true, ctx, isFromButton, trackId, time);
 };
 
-const serviceAction = async (ctx, isFromButton, func, targetTrackId, positionMs, args) => {
+const serviceAction = async (ctx, getUserToken, isFromButton, func, targetTrackId, positionMs, args) => {
     const userId = Number(ctx.from.id);
     const token = await getUserToken(userId);
 
@@ -152,11 +151,11 @@ const serviceAction = async (ctx, isFromButton, func, targetTrackId, positionMs,
     }
 }
 
-const pause = async (ctx, isFromButton = false) => {
-    return await serviceAction(ctx, isFromButton, pauseTrack);
+const pause = async (ctx, getUserToken, isFromButton = false) => {
+    return await serviceAction(ctx, getUserToken, isFromButton, pauseTrack);
 };
 
-const like = async (ctx, isFromButton = false, trackId = null) => {
+const like = async (ctx, getUserToken, isFromButton = false, trackId = null) => {
     const userId = Number(ctx.from.id);
     const token = await getUserToken(userId);
 
@@ -319,7 +318,7 @@ const activatePrem = async (ctx) => {
     );
 }
 
-const more = async (ctx) => {
+const more = async (ctx, getUserToken) => {
     const [_, commandType, genreValue] = ctx.match;
     const year = commandType === 'fresh' ? currentYear : null;
     const tag = commandType === 'ultra_fresh' ? 'new' : commandType === 'hipster' ? 'hipster' : null;
@@ -329,12 +328,12 @@ const more = async (ctx) => {
     await fetchTrack(ctx, {year, tag, genre, onlyLongTitle}, getUserToken);
 }
 
-const morePlay = async (ctx, isPlayFrom) => {
-    await more(ctx);
+const morePlay = async (ctx, getUserToken, isPlayFrom) => {
+    await more(ctx, getUserToken);
     if (isPlayFrom) {
-        await playFrom(ctx, true, null, '1:00');
+        await playFrom(ctx, getUserToken, true, null, '1:00');
     } else {
-        await play(ctx, true);
+        await play(ctx, getUserToken, true);
     }
 };
 

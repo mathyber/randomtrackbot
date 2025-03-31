@@ -79,4 +79,4 @@ function startBot() {
     });
 }
 
-module.exports = { startBot, getUserToken };
+module.exports = { startBot };

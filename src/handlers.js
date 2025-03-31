@@ -24,10 +24,10 @@ function setupHandlers(bot, { getUserToken, removeUserToken }) {
         hipster: (ctx) => fetchTrack(ctx, { tag: 'hipster' }, getUserToken),
         long_title: (ctx) => fetchTrack(ctx, {onlyLongTitle: true}, getUserToken),
         logout: (ctx) => logout(ctx, getUserToken, removeUserToken),
-        play: (ctx) => play(ctx),
-        playfrom: (ctx) => playFrom(ctx),
-        pause: (ctx) => pause(ctx),
-        like: (ctx) => like(ctx),
+        play: (ctx) => play(ctx, getUserToken),
+        playfrom: (ctx) => playFrom(ctx, getUserToken),
+        pause: (ctx) => pause(ctx, getUserToken),
+        like: (ctx) => like(ctx, getUserToken),
         bot_users: (ctx) => botUsers(ctx),
         last_requests: lastRequests,
         genre: (ctx) => genre(ctx, getUserToken),
@@ -45,31 +45,31 @@ function setupHandlers(bot, { getUserToken, removeUserToken }) {
         botUsers(ctx, pageStr)
     });
 
-    bot.action(/^more_(.+)_([^_]+)$/, more);
+    bot.action(/^more_(.+)_([^_]+)$/, (ctx) => more(ctx, getUserToken));
 
-    bot.action(/^moreplay_(.+)_([^_]+)$/, (ctx) => morePlay(ctx));
+    bot.action(/^moreplay_(.+)_([^_]+)$/, (ctx) => morePlay(ctx, getUserToken));
 
-    bot.action(/^moreplayfrom_(.+)_([^_]+)$/, (ctx) => morePlay(ctx, true));
+    bot.action(/^moreplayfrom_(.+)_([^_]+)$/, (ctx) => morePlay(ctx, getUserToken, true));
 
     bot.action('activate_premium', activatePrem);
 
     bot.action(/^play_(.+)$/, async (ctx) => {
         const trackId = ctx.match[1];
-        await play(ctx, true, trackId);
+        await play(ctx, getUserToken, true, trackId);
     });
 
     bot.action(/^playfrom_(.+)$/, async (ctx) => {
         const trackId = ctx.match[1];
-        await playFrom(ctx, true, trackId, '1:00');
+        await playFrom(ctx, getUserToken, true, trackId, '1:00');
     });
 
     bot.action(/^pause_(.+)$/, async (ctx) => {
-        await pause(ctx, true);
+        await pause(ctx, getUserToken, true);
     });
 
     bot.action(/^like_(.+)$/, async (ctx) => {
         const trackId = ctx.match[1];
-        await like(ctx, true, trackId);
+        await like(ctx, getUserToken, true, trackId);
     });
 
     bot.on('text', (ctx) => {
