@@ -19,7 +19,7 @@ const {
 const path = require('path');
 const axios = require('axios');
 const {COMMANDS, ALL_COMMANDS_TEXT, DESCRIPTION, currentYear, pageSize} = require("../const/const");
-const {playTrack, pauseTrack} = require("../services/spotifyService");
+const {playTrack, pauseTrack, likeTrack} = require("../services/spotifyService");
 const pngLogo = path.join(__dirname, '../files/1.png');
 const lastRequestTime = new Map();
 
@@ -181,7 +181,7 @@ function setupHandlers(bot, { getUserToken, removeUserToken }) {
             if (searchingMessage) await ctx.telegram.deleteMessage(ctx.chat.id, searchingMessage.message_id).catch(() => {});
 
             if (!isError && isFromButton) {
-                await ctx.answerCbQuery(`Воспроизводится с ${args || 'начала'}`);
+                await ctx.answerCbQuery(message);
             } else {
                 await ctx.reply(message, { parse_mode: 'HTML' });
             }
@@ -216,7 +216,7 @@ function setupHandlers(bot, { getUserToken, removeUserToken }) {
             if (searchingMessage) await ctx.telegram.deleteMessage(ctx.chat.id, searchingMessage.message_id).catch(() => {});
 
             if (!isError && isFromButton) {
-                await ctx.answerCbQuery(`Пауза`);
+                await ctx.answerCbQuery(message);
             } else {
                 await ctx.reply(message, { parse_mode: 'HTML' });
             }
@@ -241,28 +241,17 @@ function setupHandlers(bot, { getUserToken, removeUserToken }) {
             searchingMessage = await ctx.reply('Добавляем в любимые... ⏳', { parse_mode: 'HTML' });
         }
         try {
-            await axios.put(`https://api.spotify.com/v1/me/tracks`, {
-                ids: [targetTrackId],
-            }, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
+            const {isError, message} = await likeTrack(token);
 
-            if (isFromButton) {
-                await ctx.answerCbQuery('Добавлено в любимые');
-            } else if (searchingMessage) {
-                try {
-                    await ctx.telegram.deleteMessage(ctx.chat.id, searchingMessage.message_id);
-                    await ctx.reply('Трек добавлен в любимые!', { parse_mode: 'HTML' });
-                } catch (telegramError) {
-                    console.error('Telegram Error after like:', telegramError);
-                    await ctx.reply('Трек добавлен, но что-то пошло не так с сообщением.', { parse_mode: 'HTML' });
-                }
+            if (searchingMessage) await ctx.telegram.deleteMessage(ctx.chat.id, searchingMessage.message_id).catch(() => {});
+
+            if (!isError && isFromButton) {
+                await ctx.answerCbQuery(message);
+            } else {
+                await ctx.reply(message, { parse_mode: 'HTML' });
             }
         } catch (error) {
-            console.error('Like Error:', error.response?.data || error.message);
-            if (searchingMessage) await ctx.telegram.deleteMessage(ctx.chat.id, searchingMessage.message_id).catch(() => {});
-            const errorMsg = error.response?.data?.error?.message || 'Не получилось добавить в любимые.';
-            return ctx.reply(`Ошибка: ${errorMsg}`, { parse_mode: 'HTML' });
+            console.error(error);
         }
     };
 

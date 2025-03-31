@@ -152,7 +152,7 @@ async function playTrack(token, targetTrackId, positionMs, args) {
                 headers: { Authorization: `Bearer ${token}` },
             });
 
-            message = `Запускаем трек на ${activeDevice.name} с ${args || 'начала'}!`
+            message = `Запускаем трек на ${activeDevice.name} с ${args || 'начала'}`
         }
     } catch (error) {
         console.error('Play Error:', error.response?.data || error.message);
@@ -184,11 +184,11 @@ async function pauseTrack(token) {
                 headers: { Authorization: `Bearer ${token}` },
             });
 
-            message = `Поставили на паузу на ${activeDevice.name}!`;
+            message = `Поставили на паузу на ${activeDevice.name}`;
         }
     } catch (error) {
-        console.error('Play Error:', error.response?.data || error.message);
-        const errorMsg = error.response?.data?.error?.message || 'Не получилось запустить.';
+        console.error('Pause Error:', error.response?.data || error.message);
+        const errorMsg = error.response?.data?.error?.message || 'Не получилось поставить на паузу.';
         message = `Ошибка паузы: ${errorMsg} Попробуй открыть Spotify и проверить активное устройство.`;
         isError = true;
     }
@@ -199,4 +199,27 @@ async function pauseTrack(token) {
     }
 }
 
-module.exports = { findSongSpotify, findSongFromAlbumSpotify, playTrack, pauseTrack };
+async function likeTrack(token, targetTrackId) {
+    let message, isError = false;
+    try {
+        await axios.put(`https://api.spotify.com/v1/me/tracks`, {
+            ids: [targetTrackId],
+        }, {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+
+        message = 'Трек добавлен в любимые';
+    } catch (error) {
+        console.error('Like Error:', error.response?.data || error.message);
+        const errorMsg = error.response?.data?.error?.message || 'Не получилось лайкнуть.';
+        message = `Ошибка добавления в любимые: ${errorMsg}`;
+        isError = true;
+    }
+
+    return {
+        isError,
+        message
+    }
+}
+
+module.exports = { findSongSpotify, findSongFromAlbumSpotify, playTrack, pauseTrack, likeTrack };
