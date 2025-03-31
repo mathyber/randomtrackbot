@@ -183,8 +183,7 @@ function setupHandlers(bot, { getUserToken, removeUserToken }) {
             if (!isError) {
                 if (isFromButton) {
                     await ctx.answerCbQuery(`Воспроизводится с ${args || 'начала'}`);
-                } else if (searchingMessage) {
-                    await ctx.telegram.deleteMessage(ctx.chat.id, searchingMessage.message_id);
+                } else {
                     await ctx.reply(message, { parse_mode: 'HTML' });
                 }
             }
