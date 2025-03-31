@@ -152,18 +152,22 @@ async function playTrack(token, targetTrackId, positionMs, args) {
                 headers: { Authorization: `Bearer ${token}` },
             });
 
-            message = `Запускаем трек на ${activeDevice.name} с ${args || 'начала'}!`
+            message = `Запускаем трек на ${activeDevice.name} с ${args || 'начала'}!`;
+
+            return {
+                isError,
+                message
+            }
         }
     } catch (error) {
-        console.error('Play Error:', error.response?.data || error.message);
         const errorMsg = error.response?.data?.error?.message || 'Не получилось запустить.';
         message = `Ошибка воспроизведения: ${errorMsg} Попробуй открыть Spotify и проверить активное устройство.`;
         isError = true;
-    }
-
-    return {
-        isError,
-        message
+        console.error('Play Error:', error.response?.data || error.message);
+        return {
+            isError,
+            message
+        }
     }
 }
 
