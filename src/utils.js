@@ -8,11 +8,21 @@ function formatDate(dateString) {
     return `${day}.${month?.toString().padStart(2, "0")}.${year}`;
 }
 
+// Функция для экранирования HTML-символов
+const escapeHtml = (text) => {
+    if (!text) return '';
+    return text
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+};
+
 const getPostTrackResult = (res, youtubeUrl, limit) => {
-    const title = res?.title;
-    const artists = res?.artists.join(', ');
+    const title = escapeHtml(res?.title);
+    const artists = escapeHtml(res?.artists.join(', '));
     const link = res?.link;
-    const releaseDate = res?.release_date && !['0000'].includes(res.release_date) && res.release_date.length > 4 ? formatDate(res.release_date) : (res.release_date || '');
+    const releaseDate = res?.release_date && !['0000'].includes(res.release_date) && res.release_date.length > 4
+        ? formatDate(res.release_date)
+        : (res.release_date || '');
     const botNickname = config.BOT_NICKNAME;
 
     return `
